@@ -2,7 +2,9 @@
 
 namespace Database\Seeders;
 
+use Exception;
 use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\DB;
 
 class DatabaseSeeder extends Seeder
 {
@@ -13,6 +15,16 @@ class DatabaseSeeder extends Seeder
      */
     public function run()
     {
-        // \App\Models\User::factory(10)->create();
+        // TODO: Remove this after deployment
+        try {
+            DB::beginTransaction();
+            $this->call([
+                UserSeeder::class
+            ]);
+            DB::commit();
+        } catch (Exception $exc) {
+            DB::rollBack();
+            echo (json_encode($exc));
+        }
     }
 }
