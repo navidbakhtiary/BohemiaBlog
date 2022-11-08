@@ -18,4 +18,5 @@ class Moderator extends User
     protected $fillable = [
         'user_id'
     ];
+    
 }
