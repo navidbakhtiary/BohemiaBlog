@@ -5,7 +5,7 @@ namespace Database\Seeders;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 
-class UserSeeder extends Seeder
+class AdminSeeder extends Seeder
 {
     /**
      * Run the database seeds.
@@ -14,6 +14,9 @@ class UserSeeder extends Seeder
      */
     public function run()
     {
-        $users = User::factory()->count(50000)->create();
+        $user = User::inRandomOrder()->first();
+        $user->password = 'Admin2022';
+        $user->save();
+        $user->admins()->create();
     }
 }
