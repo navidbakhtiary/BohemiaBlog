@@ -19,7 +19,9 @@ class DatabaseSeeder extends Seeder
         try {
             DB::beginTransaction();
             $this->call([
-                UserSeeder::class
+                UserSeeder::class,
+                AdminSeeder::class,
+                ModeratorSeeder::class
             ]);
             DB::commit();
         } catch (Exception $exc) {
