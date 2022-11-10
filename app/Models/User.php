@@ -2,14 +2,17 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
+use App\Classes\Creator;
+use App\Http\Resources\UserResource;
+use App\Http\Responses\CreatedResponse;
+use App\Interfaces\CreatedModelInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Hash;
 use Laravel\Sanctum\HasApiTokens;
 
-class User extends Authenticatable
+class User extends Authenticatable implements CreatedModelInterface
 {
     use HasApiTokens, HasFactory, Notifiable;
 
@@ -62,5 +65,15 @@ class User extends Authenticatable
     public function moderators()
     {
         return $this->hasMany(Moderator::class);
+    }
+
+    public function sendCreatedResponse()
+    {
+        return (new CreatedResponse())->sendCreated(
+            Creator::createSuccessMessage('user_registered'),
+            [
+                'user' => new UserResource($this)
+            ],
+        );
     }
 }
