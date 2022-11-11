@@ -10,7 +10,7 @@ class Post extends Model
     use HasFactory;
 
     protected $fillable = [
-        'moderator_id', 'subject', 'content'
+        'user_id', 'subject', 'content'
     ];
 
     public function comments()

@@ -62,11 +62,6 @@ class User extends Authenticatable implements CreatedModelInterface
         return $this->hasMany(Admin::class);
     }
 
-    public function moderators()
-    {
-        return $this->hasMany(Moderator::class);
-    }
-
     public function sendCreatedResponse()
     {
         return (new CreatedResponse())->sendCreated(

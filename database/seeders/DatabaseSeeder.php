@@ -21,7 +21,6 @@ class DatabaseSeeder extends Seeder
             $this->call([
                 UserSeeder::class,
                 AdminSeeder::class,
-                ModeratorSeeder::class,
                 PostSeeder::class
             ]);
             DB::commit();
