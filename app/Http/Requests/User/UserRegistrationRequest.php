@@ -10,6 +10,7 @@ use App\Rules\PasswordRule;
 use App\Rules\PersonNameRule;
 use App\Rules\PhoneNumberRule;
 use App\Rules\UniqueEmailRule;
+use App\Rules\UniquePhoneRule;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
 
@@ -38,7 +39,7 @@ class UserRegistrationRequest extends FormRequest
             'surname' => [new DefaultStringMaxLengthRule(), new PersonNameRule(), 'required', 'string'],
             'nickname' => [new DefaultStringMaxLengthRule(), new NicknameRule(), 'nullable', 'string'],
             'email' => ['email:dns,spoof,filter', new DefaultStringMaxLengthRule(), 'required', 'string', new UniqueEmailRule()],
-            'phone' => [new PhoneNumberRule(), 'required', 'string', 'unique:users'],
+            'phone' => [new PhoneNumberRule(), 'required', 'string', new UniquePhoneRule()],
             'address' => [new DefaultStringMaxLengthRule(), 'nullable', 'string'],
             'city' => [new DefaultStringMaxLengthRule(), new NameRule(), 'nullable', 'string'],
             'state' => [new DefaultStringMaxLengthRule(), new NameRule(), 'nullable', 'string'],

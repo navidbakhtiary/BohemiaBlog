@@ -37,9 +37,9 @@ return [
             'string' => Creator::createValidationError('address', 'string')
         ],
         'city' => [
-            'max' => Creator::createValidationError('city', 'max.string', ['name_regex'], true, ['name' => 'city']),
+            'max' => Creator::createValidationError('city', 'max.string', null, true, ['name' => 'city']),
             'regex' => Creator::createValidationError('city', 'regex', ['name_regex'], true, ['name' => 'city']),
-            'string' => Creator::createValidationError('city', 'string', ['name_regex'], true, ['name' => 'city'])
+            'string' => Creator::createValidationError('city', 'string', null, true, ['name' => 'city'])
         ],
         'description' => [
             'max' => Creator::createValidationError('description', 'max.string'),
@@ -64,7 +64,7 @@ return [
         ],
         'name' => [
             'max' => Creator::createValidationError('name', 'max.string'),
-            'regex' => Creator::createValidationError('name', 'regex', ['name_regex']),
+            'regex' => Creator::createValidationError('name', 'regex', ['name_regex'], true, ['name' => 'name']),
             'required' => Creator::createValidationError('name', 'required'),
             'string' => Creator::createValidationError('name', 'string')
         ],

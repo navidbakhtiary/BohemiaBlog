@@ -132,8 +132,10 @@ return [
         'login' => '1201',
         'name' => '1401',
         'password' => '1601',
-        'paginate' => '1607',
+        'paginate' => '1602',
+        'phone' => '1603',
         'refresh_token' => '1801',
+        'surname' => '1901',
         'username' => '2101',
         'zipcode' => '2601'
     ],
