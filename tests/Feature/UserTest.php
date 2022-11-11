@@ -36,6 +36,14 @@ class UserTest extends TestCase
                 'phone' => $user->phone
             ]
         );
+        $this->assertTrue(
+            User::where([
+                ['name', $user->name],
+                ['surname', $user->surname],
+                ['email', $attributes['email']],
+                ['username', 'like', strtolower($user->surname . substr($user->name, 0, 3)) . '%']
+            ])->count() == 1
+        );
     }
 
     public function testFailureInNewUserRegistrationWithInvalidInputData()
