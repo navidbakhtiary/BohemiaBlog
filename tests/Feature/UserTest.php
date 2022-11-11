@@ -12,6 +12,7 @@ class UserTest extends TestCase
     use RefreshDatabase;
 
     private $api_register = '/api/user/register';
+    private $api_login = '/api/user/login';
 
     public function testRegisterNewUser()
     {
@@ -145,6 +146,37 @@ class UserTest extends TestCase
                 'surname' => $user2->surname,
                 'email' => $user2->email,
                 'phone' => $user2->phone,
+            ]
+        );
+    }
+
+    public function testUserLogin()
+    {
+        $user = User::factory()->make();
+        $user->password = 'Ab123456';
+        $user->save();
+        $response = $this->postJson($this->api_login, 
+            ['login' => $user->email, 'password' => 'Ab123456', 'device_name' => 'laptop']);
+        $response->
+            assertOk()->
+            assertJsonStructure(
+                [
+                    'message' => [],
+                    'data' => ['user' => [], 'access token' => ['token', 'device name']]
+                ]
+            )->
+            assertJsonFragment(
+                [
+                    'message' => ['code' => 'S212', 'text' => 'Logging was successful. This device was saved to the user account.'],
+                    'data' => ['user' => ['email' => $user->email], 'access token' => ['device name' => 'laptop']] 
+                ]
+            );
+        $this->assertDatabaseHas(
+            'personal_access_tokens',
+            [
+                'name' => 'laptop',
+                'tokenable_type' => User::class,
+                'tokenable_id' => $user->id
             ]
         );
     }
