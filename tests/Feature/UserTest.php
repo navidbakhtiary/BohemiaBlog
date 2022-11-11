@@ -90,4 +90,54 @@ class UserTest extends TestCase
                 ]
             );
     }
+
+    public function testFailureInNewUserRegistrationWithSavedEmailAndPhone()
+    {
+        $user1 = User::factory()->create();
+        $user1->email = 'navidbakhtiary@gmail.com';
+        $user1->save();
+        $user2 = User::factory()->make();
+        $user2->phone = $user1->phone;
+        $user2->email = $user1->email;
+        $attributes = $user2->toArray();
+        $attributes['password'] = 'Ab123456';
+        $response = $this->postJson($this->api_register, $attributes);
+        $response->
+            assertStatus(HttpStatus::BadRequest)->
+            assertJsonStructure(['message' => [], 'errors' => []])->
+            assertJsonFragment(['message' => ['code' => 'E091', 'text' => 'Inputs are invalid.']])->
+            assertJsonFragment([
+                'email' => [
+                    [
+                        'code' => '0501-90',
+                        'message' => 'The email has already been taken.'
+                    ]
+                ],
+                'phone' => [
+                    [
+                        'code' => '1603-90',
+                        'message' => 'The phone has already been taken.'
+                    ]
+                ]
+            ]
+        );
+        $this->assertDatabaseHas(
+            'users',
+            [
+                'name' => $user1->name,
+                'surname' => $user1->surname,
+                'email' => $user1->email,
+                'phone' => $user1->phone,
+            ]
+        );
+        $this->assertDatabaseMissing(
+            'users',
+            [
+                'name' => $user2->name,
+                'surname' => $user2->surname,
+                'email' => $user2->email,
+                'phone' => $user2->phone,
+            ]
+        );
+    }
 }
