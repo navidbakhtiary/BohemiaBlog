@@ -231,5 +231,58 @@ class UserTest extends TestCase
                 ]
             );
     }
+
+
+    public function testUserCanLoginWithUsernameOrPhoneNumber()
+    {
+        $user = User::factory()->make();
+        $user->password = 'Ab123456';
+        $user->save();
+        $response = $this->postJson(
+            $this->api_login,
+            ['login' => $user->username, 'password' => 'Ab123456', 'device_name' => 'laptop']
+        );
+        $response->assertOk()->
+            assertJsonStructure(
+                [
+                    'message' => [],
+                    'data' => ['user' => [], 'access token' => ['token', 'device name']]
+                ]
+            )->assertJsonFragment(
+                [
+                    'message' => ['code' => 'S212', 'text' => 'Logging was successful. This device was saved to the user account.']
+                ]
+            );
+        $response = $this->postJson(
+            $this->api_login,
+            ['login' => $user->phone, 'password' => 'Ab123456', 'device_name' => 'macbook']
+        );
+        $response->assertOk()->
+            assertJsonStructure(
+                [
+                    'message' => [],
+                    'data' => ['user' => [], 'access token' => ['token', 'device name']]
+                ]
+            )->assertJsonFragment(
+                [
+                    'message' => ['code' => 'S212', 'text' => 'Logging was successful. This device was saved to the user account.']
+                ]
+            );
+        $this->assertDatabaseHas(
+            'personal_access_tokens',
+            [
+                'name' => 'laptop',
+                'tokenable_type' => User::class,
+                'tokenable_id' => $user->id
+            ]
+        )->assertDatabaseHas(
+            'personal_access_tokens',
+            [
+                'name' => 'macbook',
+                'tokenable_type' => User::class,
+                'tokenable_id' => $user->id
+            ]
+        );
+    }
     
 }
