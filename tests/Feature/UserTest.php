@@ -179,4 +179,42 @@ class UserTest extends TestCase
             ]
         );
     }
+
+    public function testGetBadRequestResponseForUserLoginWithInvalidInputData()
+    {
+        $user = User::factory()->make();
+        $user->password = 'Ab123456';
+        $user->save();
+        $response = $this->postJson($this->api_login, ['login' => $user->username]);
+        $response->assertStatus(HttpStatus::BadRequest)->
+            assertExactJson(
+                [
+                    'message' => ['code' => 'E091', 'text' => 'Inputs are invalid.'],
+                    'errors' => [
+                        'device_name' => [
+                            [
+                                'code' => '0401-72',
+                                'message' => 'The device name field is required.'
+                            ]
+                        ],
+                        'password' => [
+                            [
+                                'code' => '1601-72',
+                                'message' => 'The password field is required.'
+                            ]
+                        ],
+                    ]
+                ]
+            );
+        $this->assertDatabaseHas(
+            'users',
+            [
+                'name' => $user->name,
+                'surname' => $user->surname,
+                'email' => $user->email,
+                'phone' => $user->phone
+            ]
+        );
+    }
+
 }
