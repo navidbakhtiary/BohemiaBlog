@@ -217,4 +217,19 @@ class UserTest extends TestCase
         );
     }
 
+    public function testGetUnauthorizedResponseForUserLoginWithNonExistenceAccount()
+    {
+        $user = User::factory()->make();
+        $user->password = 'Ab123456';
+        $response = $this->postJson($this->api_login, 
+            ['login' => $user->email, 'password' => 'Ab123456', 'device_name' => 'laptop']);
+        $response->assertUnauthorized()->
+            assertExactJson(
+                [
+                    'message' => ['code' => 'E141', 'text' => 'The email/phone number/username or password is incorrect.'],
+                    'errors' => []
+                ]
+            );
+    }
+    
 }
