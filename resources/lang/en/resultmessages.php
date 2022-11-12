@@ -5,7 +5,7 @@ return [
     'failures' => [
         'invalid_inputs' => 'Inputs are invalid.',
         'invalid_email_verification' => 'Email verification link is INVALID.',
-        'non_existent_user' => 'The email or password is incorrect.',
+        'non_existent_user' => 'The email/phone number/username or password is incorrect.',
         'server_error' => 'An error has occurred. Please try again in a few minutes.',
         'unauthenticated' => 'You must first log in to your account.',
         'unauthorized' => 'You cannot access this part.',

@@ -59,6 +59,7 @@ return [
             'unique' => Creator::createValidationError('email', 'unique', null, true)
         ],
         'login' => [
+            'max' => Creator::createValidationError('login', 'max.string'),
             'required' => Creator::createValidationError('login', 'required'),
             'string' => Creator::createValidationError('login', 'string')
         ],
@@ -79,6 +80,7 @@ return [
         ],
         'password' => [
             'confirmed' => Creator::createValidationError('password', 'confirmed'),
+            'max' => Creator::createValidationError('password', 'max.string'),
             'regex' => Creator::createValidationError('password', 'regex', ['password_regex']),
             'required' => Creator::createValidationError('password', 'required'),
             'string' => Creator::createValidationError('password', 'string')
@@ -119,7 +121,7 @@ return [
         'access_token' => 'authentication token',
         'device_name' => 'device name',
         'email' => 'email',
-        'login' => 'email/username',
+        'login' => 'email/phone number/username',
         'paginate' => 'number of items per page',
         'username' => 'username',
     ],

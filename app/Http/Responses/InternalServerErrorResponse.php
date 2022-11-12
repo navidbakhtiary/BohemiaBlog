@@ -3,7 +3,7 @@
 namespace App\Http\Responses;
 
 use App\Classes\HttpStatus;
-use App\Http\Classes\Creator;
+use App\Classes\Creator;
 use App\Interfaces\ErrorResponseInterface;
 
 class InternalServerErrorResponse extends Response implements ErrorResponseInterface

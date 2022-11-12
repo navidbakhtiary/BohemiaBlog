@@ -167,8 +167,7 @@ class UserTest extends TestCase
             )->
             assertJsonFragment(
                 [
-                    'message' => ['code' => 'S212', 'text' => 'Logging was successful. This device was saved to the user account.'],
-                    'data' => ['user' => ['email' => $user->email], 'access token' => ['device name' => 'laptop']] 
+                    'message' => ['code' => 'S212', 'text' => 'Logging was successful. This device was saved to the user account.'] 
                 ]
             );
         $this->assertDatabaseHas(

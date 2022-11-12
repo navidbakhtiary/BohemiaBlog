@@ -3,8 +3,10 @@
 namespace App\Models;
 
 use App\Classes\Creator;
+use App\Http\Resources\TokenResource;
 use App\Http\Resources\UserResource;
 use App\Http\Responses\CreatedResponse;
+use App\Http\Responses\OkResponse;
 use App\Interfaces\CreatedModelInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -52,11 +54,6 @@ class User extends Authenticatable implements CreatedModelInterface
         'email_verified_at' => 'datetime',
     ];
 
-    public function setPasswordAttribute($value)
-    {
-        $this->attributes['password'] = Hash::make($value);
-    }
-
     public function admins()
     {
         return $this->hasMany(Admin::class);
@@ -68,6 +65,22 @@ class User extends Authenticatable implements CreatedModelInterface
             Creator::createSuccessMessage('user_registered'),
             [
                 'user' => new UserResource($this)
+            ],
+        );
+    }
+
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password'] = Hash::make($value);
+    }
+
+    public function sendTokenResponse($token)
+    {
+        return (new OkResponse())->sendOk(
+            Creator::createSuccessMessage('user_logged_in'),
+            [
+                'user' => new UserResource($this),
+                'access token' => new TokenResource($token)
             ],
         );
     }
