@@ -25,7 +25,7 @@ class PasswordRule implements Rule
      */
     public function passes($attribute, $value)
     {
-        return preg_match('/^(?=[0-9a-zA-Z#@\$&]+$)(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).{8,20}/', $value);
+        return preg_match(config('blog.regexes.password'), $value);
     }
 
     /**

@@ -25,7 +25,7 @@ class PhoneNumberRule implements Rule
      */
     public function passes($attribute, $value)
     {
-        return preg_match('/^\+[1-9]\d{9,15}$/', $value);
+        return preg_match(config('blog.regexes.phone_number'), $value);
     }
 
     /**

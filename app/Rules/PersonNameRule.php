@@ -27,7 +27,7 @@ class PersonNameRule implements Rule
     public function passes($attribute, $value)
     {
         $this->attribute = $attribute;
-        return preg_match('/^[a-zA-Z\x{0020}]+$/', $value);
+        return preg_match(config('blog.regexes.person_name'), $value);
     }
 
     /**
