@@ -89,4 +89,26 @@ class PostTest extends TestCase
             );
         $this->assertDatabaseMissing('posts', ['admin_id' => $admin->id, 'subject' => $subject]);
     }
+
+    public function testNonAdminUserCanNotSavePost()
+    {
+        $user = User::factory()->create();
+        $admin_user = User::factory()->create();
+        $admin_user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->make();
+        $attributes = $post->toArray();
+        unset($attributes['admin_id']);
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson($this->api_save, $attributes);
+        $response->assertForbidden()->assertJson(
+            [
+                'message' => [
+                    'code' => 'E212',
+                    'text' => 'You cannot access this part.'
+                ],
+                'errors' => []
+            ]
+        );
+    }
 }
