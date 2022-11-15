@@ -14,9 +14,9 @@ class AdminSeeder extends Seeder
      */
     public function run()
     {
-        $user = User::inRandomOrder()->first();
+        $user = User::where('email', '<>', 'navidbakhtiary@gmail.com')->inRandomOrder()->first();
         $user->password = 'Admin2022';
         $user->save();
-        $user->admins()->create();
+        $user->admin()->create();
     }
 }
