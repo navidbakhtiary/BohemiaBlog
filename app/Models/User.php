@@ -54,9 +54,9 @@ class User extends Authenticatable implements CreatedModelInterface
         'email_verified_at' => 'datetime',
     ];
 
-    public function admins()
+    public function admin()
     {
-        return $this->hasMany(Admin::class);
+        return $this->hasOne(Admin::class);
     }
 
     public function sendCreatedResponse()

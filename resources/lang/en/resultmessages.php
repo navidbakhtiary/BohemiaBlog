@@ -15,8 +15,7 @@ return [
 
     'successes' => [
         'empty_list' => 'No information is saved. The list is empty.',
-        'email_verification_sent' => 'A verification link has been sent to the email.',
-        'email_verified' => 'Email verified successfully. The account is activated now.',
+        'post_saved' => 'Post was saved successfully.',
         'saved' => 'Information was saved successfully.',
         'user_registered' => 'The user was registered successfully.',
         'user_logged_in' =>'Logging was successful. This device was saved to the user account.',

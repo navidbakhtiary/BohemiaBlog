@@ -126,6 +126,7 @@ return [
         'address' => '0101',
         'access_token' => '0102',
         'city' => '0301',
+        'content' => '0302',
         'device_name' => '0401',
         'description' => '0402',
         'email' => '0501',
@@ -136,6 +137,7 @@ return [
         'phone' => '1603',
         'refresh_token' => '1801',
         'surname' => '1901',
+        'subject' => '1902',
         'username' => '2101',
         'zipcode' => '2601'
     ],

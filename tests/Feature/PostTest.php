@@ -18,7 +18,7 @@ class PostTest extends TestCase
     public function testCreatePostByAdmin()
     {
         $user = User::factory()->create();
-        $admin = $user->admins()->create();
+        $admin = $user->admin()->create();
         $token = $user->createToken('test-token');
         $post = Post::factory()->make();
         $attributes = $post->toArray();
@@ -27,7 +27,7 @@ class PostTest extends TestCase
             postJson($this->api_save, $attributes);
         $response->
             assertCreated()->
-            assertExactJson(
+            assertJson(
                 [
                     'message' => [
                         'code' => 'S161',
@@ -39,15 +39,13 @@ class PostTest extends TestCase
                         [
                             'subject' => $post->subject,
                             'content' => $post->content,
-                            'created_at' => $post->created_at,
-                            'updated_at' => $post->updated_at,
-                            'user' => 
+                            'author' => 
                             [
                                 'id' => $user->id,
                                 'name' => $user->name,
                                 'surname' => $user->surname,
                                 'nickname' => $user->nickname,
-                                'email' => $user->email
+                                'username' => $user->username
                             ]
                         ]
                     ]

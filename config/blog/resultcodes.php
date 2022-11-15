@@ -15,8 +15,7 @@ return [
 
     'successes' => [
         'empty_list' => 'S051',
-        'email_verification_sent' => 'S059',
-        'email_verified' => 'S0510',
+        'post_saved' => 'S161',
         'saved' => 'S191',
         'user_registered' => 'S211',
         'user_logged_in' => 'S212',
