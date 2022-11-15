@@ -2,6 +2,7 @@
 
 namespace App\Http\Requests\Post;
 
+use App\Rules\UniquePostSubjectRule;
 use App\Traits\ResponseTrait;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Contracts\Validation\Validator;
@@ -27,7 +28,7 @@ class PostStoreRequest extends FormRequest
     public function rules()
     {
         return [
-            'subject' => ['max:64', 'required', 'string'],
+            'subject' => ['max:64', 'required', 'string', new UniquePostSubjectRule()],
             'content' => ['max:65535', 'required', 'string']
         ];
     }

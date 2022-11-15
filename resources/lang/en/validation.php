@@ -104,7 +104,8 @@ return [
         'subject' => [
             'max' => Creator::createValidationError('subject', 'max.string'),
             'required' => Creator::createValidationError('subject', 'required'),
-            'string' => Creator::createValidationError('subject', 'string')
+            'string' => Creator::createValidationError('subject', 'string'),
+            'unique' => Creator::createValidationError('subject', 'unique')
         ],
         'surname' => [
             'max' => Creator::createValidationError('surname', 'max.string'),

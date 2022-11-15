@@ -111,4 +111,37 @@ class PostTest extends TestCase
             ]
         );
     }
+
+    public function testSavingNewPostWithAnExistingSubjectIsUnsuccessful()
+    {
+        $user = User::factory()->create();
+        $admin_1 = $user->admin()->create();
+        $post_1 = Post::factory()->create();
+        $user = User::factory()->create();
+        $admin_2 = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post_2 = Post::factory()->make();
+        $post_2->subject = $post_1->subject;
+        
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson($this->api_save, $post_2->toArray());
+        $response->assertStatus(HttpStatus::BadRequest)->assertJson(
+            [
+                'message' => [
+                    'code' => 'E091',
+                    'text' => 'Inputs are invalid.'
+                ],
+                'errors' =>
+                [
+                    'subject' => [
+                        [
+                            'code' => '1902-90',
+                            'message' => 'The subject has already been taken.'
+                        ]
+                    ]
+                ]
+            ]
+        );
+        $this->assertTrue(Post::where('subject', $post_1->subject)->count() == 1);
+    }
 }
