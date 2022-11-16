@@ -94,4 +94,16 @@ class CommentTest extends TestCase
             ]
         );
     }
+
+    public function testUserCanNotSaveCommentOnUnexistedPost()
+    {
+        $user = User::factory()->create();
+        $token = $user->createToken('test-token');
+        $comment = Comment::factory()->make();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->postJson(str_replace('{id}', 456, $this->api_save), $comment->toArray());
+        $response->assertNotFound()->assertJson([
+                'message' => Creator::createFailureMessage('post_not_found'),
+                'errors' => []
+            ]);
+    }
 }
