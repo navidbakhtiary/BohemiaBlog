@@ -59,6 +59,11 @@ class User extends Authenticatable implements CreatedModelInterface
         return $this->hasOne(Admin::class);
     }
 
+    public function comments()
+    {
+        return $this->hasMany(Comment::class);
+    }
+
     public function sendCreatedResponse()
     {
         return (new CreatedResponse())->sendCreated(

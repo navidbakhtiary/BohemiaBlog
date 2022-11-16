@@ -6,6 +6,7 @@ return [
         'invalid_inputs' => 'E091',
         'invalid_email_verification' => 'E092',
         'non_existent_user' => 'E141',
+        'post_not_found' => 'E161',
         'server_error' => 'E191',
         'unauthenticated' => 'E211',
         'unauthorized' => 'E212',
@@ -14,6 +15,7 @@ return [
     ],
 
     'successes' => [
+        'comment_saved' => 'S031',
         'empty_list' => 'S051',
         'post_saved' => 'S161',
         'saved' => 'S191',
