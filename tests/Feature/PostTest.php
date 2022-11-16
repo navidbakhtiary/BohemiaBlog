@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Classes\Creator;
 use App\Classes\HttpStatus;
 use App\Models\Post;
 use App\Models\User;
@@ -31,10 +32,7 @@ class PostTest extends TestCase
             assertCreated()->
             assertJson(
                 [
-                    'message' => [
-                        'code' => 'S161',
-                        'text' => 'Post was saved successfully.'
-                    ],
+                    'message' => Creator::createSuccessMessage('post_saved'),
                     'data' => 
                     [
                         'post' => 
@@ -66,23 +64,14 @@ class PostTest extends TestCase
             postJson($this->api_save, ['subject' => $subject]);
         $response->assertStatus(HttpStatus::BadRequest)->assertJson(
                 [
-                    'message' => [
-                        'code' => 'E091',
-                        'text' => 'Inputs are invalid.'
-                    ],
+                    'message' => Creator::createFailureMessage('invalid_inputs'),
                     'errors' =>
                     [
                         'subject' => [
-                            [
-                                'code' => '1902-57',
-                                'message' => 'The subject must not have more than 64 characters.'
-                            ]
+                            Creator::createValidationError('subject', 'max.string', null, true, ['max' => '64'])
                         ],
                         'content' => [
-                            [
-                                'code' => '0302-72',
-                                'message' => 'The content field is required.'
-                            ]
+                            Creator::createValidationError('content', 'required', null, true)
                         ],
                     ]
                 ]
@@ -103,10 +92,7 @@ class PostTest extends TestCase
             postJson($this->api_save, $attributes);
         $response->assertForbidden()->assertJson(
             [
-                'message' => [
-                    'code' => 'E212',
-                    'text' => 'You cannot access this part.'
-                ],
+                'message' => Creator::createFailureMessage('unauthorized'),
                 'errors' => []
             ]
         );
@@ -127,17 +113,11 @@ class PostTest extends TestCase
             postJson($this->api_save, $post_2->toArray());
         $response->assertStatus(HttpStatus::BadRequest)->assertJson(
             [
-                'message' => [
-                    'code' => 'E091',
-                    'text' => 'Inputs are invalid.'
-                ],
+                'message' => Creator::createFailureMessage('invalid_inputs'),
                 'errors' =>
                 [
                     'subject' => [
-                        [
-                            'code' => '1902-90',
-                            'message' => 'The subject has already been taken.'
-                        ]
+                        Creator::createValidationError('subject', 'unique', null, true)
                     ]
                 ]
             ]

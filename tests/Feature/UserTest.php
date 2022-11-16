@@ -2,6 +2,7 @@
 
 namespace Tests\Feature;
 
+use App\Classes\Creator;
 use App\Classes\HttpStatus;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -26,7 +27,7 @@ class UserTest extends TestCase
             assertJsonStructure(['message' => [], 'data' => ['user' => []]])->
             assertJsonFragment(
                 [
-                    'message' => ['code' => 'S211', 'text' => 'The user was registered successfully.'],
+                    'message' => Creator::createSuccessMessage('user_registered')
                 ]
             );
         $this->assertDatabaseHas('users', 
@@ -64,29 +65,21 @@ class UserTest extends TestCase
         $response->
             assertStatus(HttpStatus::BadRequest)->
             assertJsonStructure(['message' => [], 'errors' => []])->
-            assertJsonFragment(['message' => ['code' => 'E091', 'text' => 'Inputs are invalid.']])->
+            assertJsonFragment(
+                [
+                    'message' => Creator::createFailureMessage('invalid_inputs')
+                ]
+            )->
             assertJsonFragment([
                 'name' => [
-                    [
-                        'code' => '1401-71',
-                        'message' => 'The name format is invalid.The name can contain only letters and space.'
-                    ],
-                    [
-                        'code' => '1401-72',
-                        'message' => 'The name field is required.'
-                    ]
+                    Creator::createValidationError('name', 'regex', ['name_regex'], true, ['name' => 'name']),
+                    Creator::createValidationError('name', 'required', null, true)
                 ],
                 'surname' => [
-                    [
-                        'code' => '1901-71',
-                        'message' => 'The surname format is invalid.The surname can contain only letters and space.'
-                    ]
+                    Creator::createValidationError('surname', 'regex', ['surname_regex'], true)
                 ],
                 'email' => [
-                    [
-                        'code' => '0501-26',
-                        'message' => 'The email must be a valid email address.'
-                    ]
+                    Creator::createValidationError('email', 'email', null, true)
                 ]
             ]);
             $this->assertDatabaseMissing(
@@ -114,19 +107,17 @@ class UserTest extends TestCase
         $response->
             assertStatus(HttpStatus::BadRequest)->
             assertJsonStructure(['message' => [], 'errors' => []])->
-            assertJsonFragment(['message' => ['code' => 'E091', 'text' => 'Inputs are invalid.']])->
+            assertJsonFragment(
+                [
+                    'message' => Creator::createFailureMessage('invalid_inputs')
+                ]
+            )->
             assertJsonFragment([
                 'email' => [
-                    [
-                        'code' => '0501-90',
-                        'message' => 'The email has already been taken.'
-                    ]
+                    Creator::createValidationError('email', 'unique', null, true)
                 ],
                 'phone' => [
-                    [
-                        'code' => '1603-90',
-                        'message' => 'The phone has already been taken.'
-                    ]
+                    Creator::createValidationError('phone', 'unique', null, true)
                 ]
             ]
         );
@@ -167,7 +158,7 @@ class UserTest extends TestCase
             )->
             assertJsonFragment(
                 [
-                    'message' => ['code' => 'S212', 'text' => 'Logging was successful. This device was saved to the user account.'] 
+                    'message' => Creator::createSuccessMessage('user_logged_in')
                 ]
             );
         $this->assertDatabaseHas(
@@ -189,19 +180,13 @@ class UserTest extends TestCase
         $response->assertStatus(HttpStatus::BadRequest)->
             assertExactJson(
                 [
-                    'message' => ['code' => 'E091', 'text' => 'Inputs are invalid.'],
+                    'message' => Creator::createFailureMessage('invalid_inputs'),
                     'errors' => [
                         'device_name' => [
-                            [
-                                'code' => '0401-72',
-                                'message' => 'The device name field is required.'
-                            ]
+                            Creator::createValidationError('device_name', 'required', null, true, ['attribute' => 'device name'])
                         ],
                         'password' => [
-                            [
-                                'code' => '1601-72',
-                                'message' => 'The password field is required.'
-                            ]
+                            Creator::createValidationError('password', 'required', null, true)
                         ],
                     ]
                 ]
@@ -226,7 +211,7 @@ class UserTest extends TestCase
         $response->assertUnauthorized()->
             assertExactJson(
                 [
-                    'message' => ['code' => 'E141', 'text' => 'The email/phone number/username or password is incorrect.'],
+                    'message' => Creator::createFailureMessage('non_existent_user'),
                     'errors' => []
                 ]
             );
@@ -250,7 +235,7 @@ class UserTest extends TestCase
                 ]
             )->assertJsonFragment(
                 [
-                    'message' => ['code' => 'S212', 'text' => 'Logging was successful. This device was saved to the user account.']
+                    'message' => Creator::createSuccessMessage('user_logged_in')
                 ]
             );
         $response = $this->postJson(
@@ -265,7 +250,7 @@ class UserTest extends TestCase
                 ]
             )->assertJsonFragment(
                 [
-                    'message' => ['code' => 'S212', 'text' => 'Logging was successful. This device was saved to the user account.']
+                    'message' => Creator::createSuccessMessage('user_logged_in')
                 ]
             );
         $this->assertDatabaseHas(
@@ -284,5 +269,4 @@ class UserTest extends TestCase
             ]
         );
     }
-    
 }
