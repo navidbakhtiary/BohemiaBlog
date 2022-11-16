@@ -14,4 +14,12 @@ class UnauthorizedResponse extends Response
             Creator::createFailureMessage('non_existent_user')
         );
     }
+
+    public static function sendUnauthenticated()
+    {
+        return self::sendError(
+            HttpStatus::Unauthorized,
+            Creator::createFailureMessage('unauthenticated')
+        );
+    }
 }

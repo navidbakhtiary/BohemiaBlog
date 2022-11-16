@@ -79,4 +79,19 @@ class CommentTest extends TestCase
         $this->assertDatabaseMissing('comments', ['user_id' => $user->id, 'post_id' => $post->id, 'content' => $content]);
     }
 
+    public function testUnauthenticatedUserCanNotSaveComment()
+    {
+        $admin_user = User::factory()->create();
+        $admin_user->admin()->create();
+        $post = Post::factory()->create();
+        $comment = Comment::factory()->make();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . hash('sha256', 'fake token')])->
+            postJson(str_replace('{id}', $post->id, $this->api_save), $comment->toArray());
+        $response->assertUnauthorized()->assertJson(
+            [
+                'message' => Creator::createFailureMessage('unauthenticated'),
+                'errors' => []
+            ]
+        );
+    }
 }
