@@ -2,7 +2,6 @@
 
 namespace App\Http\Middleware;
 
-use App\Http\Responses\ForbiddenResponse;
 use App\Http\Responses\NotFoundResponse;
 use App\Models\Post;
 use Closure;
