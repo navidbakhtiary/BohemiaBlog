@@ -3,6 +3,7 @@
 return [
 
     'failures' => [
+        'comment_not_found' => 'There is no such comment.',
         'invalid_inputs' => 'Inputs are invalid.',
         'invalid_email_verification' => 'Email verification link is INVALID.',
         'non_existent_user' => 'The email/phone number/username or password is incorrect.',

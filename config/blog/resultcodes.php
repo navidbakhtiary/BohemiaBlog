@@ -3,6 +3,7 @@
 return [
 
     'failures' => [
+        'comment_not_found' => 'E031',
         'invalid_inputs' => 'E091',
         'invalid_email_verification' => 'E092',
         'non_existent_user' => 'E141',

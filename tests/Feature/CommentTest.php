@@ -151,4 +151,15 @@ class CommentTest extends TestCase
             ['user_id' => $user->id, 'post_id' => $post->id, 'content' => $comment->content]
         );
     }
+
+    public function testDeleteNonExistentCommentGetFail()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $token = $user->createToken('test-token');
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace(['{post_id}', '{comment_id}'], [$post->id, 1001], $this->api_delete));
+        $response->assertNotFound()->assertJson(['message' => Creator::createFailureMessage('comment_not_found'), 'errors' => []]);
+    }
 }
