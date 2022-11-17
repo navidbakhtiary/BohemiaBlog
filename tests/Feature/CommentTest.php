@@ -18,6 +18,7 @@ class CommentTest extends TestCase
     private $bearer_prefix = 'Bearer ';
     
     private $api_save = '/api/post/{id}/comment/save';
+    private $api_delete = '/api/post/{post_id}/comment/{comment_id}/delete';
 
     public function testSaveCommentOnPostByAuthenticatedUser()
     {
@@ -106,4 +107,27 @@ class CommentTest extends TestCase
                 'errors' => []
             ]);
     }
+
+    public function testDeleteCommentOfPostByAuthenticatedAdmin()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $token = $user->createToken('test-token');
+        $user = User::factory()->create();
+        $comment = Comment::factory()->make();
+        $comment = $post->comments()->create(['user_id' => $user->id, 'content' => $comment->content]);
+        $this->assertDatabaseHas(
+            'comments',
+            ['user_id' => $user->id, 'post_id' => $post->id, 'content' => $comment->content]
+        );
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace(['{post_id}', '{comment_id}'], [$post->id, $comment->id], $this->api_delete));
+        $response->assertOk()->assertJson(['message' => Creator::createSuccessMessage('comment_deleted'), 'data' => []]);
+        $this->assertDatabaseMissing(
+            'comments',
+            ['user_id' => $user->id, 'post_id' => $post->id, 'content' => $comment->content]
+        );
+    }
+
 }
