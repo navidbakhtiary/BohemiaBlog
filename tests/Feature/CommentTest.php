@@ -130,4 +130,25 @@ class CommentTest extends TestCase
         );
     }
 
+    public function testAuthenticatedNonAdminUserCanNotDeleteComment()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $user = User::factory()->create();
+        $comment = Comment::factory()->make();
+        $comment = $post->comments()->create(['user_id' => $user->id, 'content' => $comment->content]);
+        $token = $user->createToken('test-token');
+        $this->assertDatabaseHas(
+            'comments',
+            ['user_id' => $user->id, 'post_id' => $post->id, 'content' => $comment->content]
+        );
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace(['{post_id}', '{comment_id}'], [$post->id, $comment->id], $this->api_delete));
+        $response->assertForbidden()->assertJson(['message' => Creator::createFailureMessage('unauthorized'), 'errors' => []]);
+        $this->assertDatabaseHas(
+            'comments',
+            ['user_id' => $user->id, 'post_id' => $post->id, 'content' => $comment->content]
+        );
+    }
 }
