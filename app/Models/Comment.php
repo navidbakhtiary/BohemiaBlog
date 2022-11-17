@@ -10,10 +10,11 @@ use App\Interfaces\CreatedModelInterface;
 use App\Interfaces\DeletedModelInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Comment extends Model implements CreatedModelInterface, DeletedModelInterface
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes;
 
     protected $fillable = [
         'post_id', 'user_id', 'content'

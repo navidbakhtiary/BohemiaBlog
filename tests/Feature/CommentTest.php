@@ -124,10 +124,11 @@ class CommentTest extends TestCase
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
             postJson(str_replace(['{post_id}', '{comment_id}'], [$post->id, $comment->id], $this->api_delete));
         $response->assertOk()->assertJson(['message' => Creator::createSuccessMessage('comment_deleted'), 'data' => []]);
-        $this->assertDatabaseMissing(
+        $this->assertSoftDeleted(
             'comments',
             ['user_id' => $user->id, 'post_id' => $post->id, 'content' => $comment->content]
         );
+        $this->assertSoftDeleted($comment);
     }
 
     public function testAuthenticatedNonAdminUserCanNotDeleteComment()
