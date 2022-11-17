@@ -16,6 +16,7 @@ return [
 
     'successes' => [
         'comment_saved' => 'S031',
+        'comment_deleted' => 'S032',
         'empty_list' => 'S051',
         'post_saved' => 'S161',
         'saved' => 'S191',

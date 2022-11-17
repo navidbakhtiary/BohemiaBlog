@@ -5,11 +5,13 @@ namespace App\Models;
 use App\Classes\Creator;
 use App\Http\Resources\CommentResource;
 use App\Http\Responses\CreatedResponse;
+use App\Http\Responses\OkResponse;
 use App\Interfaces\CreatedModelInterface;
+use App\Interfaces\DeletedModelInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class Comment extends Model implements CreatedModelInterface
+class Comment extends Model implements CreatedModelInterface, DeletedModelInterface
 {
     use HasFactory;
 
@@ -29,6 +31,13 @@ class Comment extends Model implements CreatedModelInterface
             [
                 'comment' => new CommentResource($this)
             ],
+        );
+    }
+
+    public function sendDeletedResponse()
+    {
+        return (new OkResponse())->sendOk(
+            Creator::createSuccessMessage('comment_deleted')
         );
     }
 }

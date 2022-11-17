@@ -16,6 +16,7 @@ return [
 
     'successes' => [
         'comment_saved' => 'Comment was saved successfully.',
+        'comment_deleted' => 'Comment was deleted successfully.',
         'empty_list' => 'No information is saved. The list is empty.',
         'post_saved' => 'Post was saved successfully.',
         'saved' => 'Information was saved successfully.',
