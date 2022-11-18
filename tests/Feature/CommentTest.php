@@ -18,6 +18,7 @@ class CommentTest extends TestCase
     private $bearer_prefix = 'Bearer ';
     
     private $api_save = '/api/post/{id}/comment/save';
+    private $api_delete = '/api/post/{post_id}/comment/{comment_id}/delete';
 
     public function testSaveCommentOnPostByAuthenticatedUser()
     {
@@ -105,5 +106,61 @@ class CommentTest extends TestCase
                 'message' => Creator::createFailureMessage('post_not_found'),
                 'errors' => []
             ]);
+    }
+
+    public function testDeleteCommentOfPostByAuthenticatedAdmin()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $token = $user->createToken('test-token');
+        $user = User::factory()->create();
+        $comment = Comment::factory()->make();
+        $comment = $post->comments()->create(['user_id' => $user->id, 'content' => $comment->content]);
+        $this->assertDatabaseHas(
+            'comments',
+            ['user_id' => $user->id, 'post_id' => $post->id, 'content' => $comment->content]
+        );
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace(['{post_id}', '{comment_id}'], [$post->id, $comment->id], $this->api_delete));
+        $response->assertOk()->assertJson(['message' => Creator::createSuccessMessage('comment_deleted'), 'data' => []]);
+        $this->assertSoftDeleted(
+            'comments',
+            ['user_id' => $user->id, 'post_id' => $post->id, 'content' => $comment->content]
+        );
+        $this->assertSoftDeleted($comment);
+    }
+
+    public function testAuthenticatedNonAdminUserCanNotDeleteComment()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $user = User::factory()->create();
+        $comment = Comment::factory()->make();
+        $comment = $post->comments()->create(['user_id' => $user->id, 'content' => $comment->content]);
+        $token = $user->createToken('test-token');
+        $this->assertDatabaseHas(
+            'comments',
+            ['user_id' => $user->id, 'post_id' => $post->id, 'content' => $comment->content]
+        );
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace(['{post_id}', '{comment_id}'], [$post->id, $comment->id], $this->api_delete));
+        $response->assertForbidden()->assertJson(['message' => Creator::createFailureMessage('unauthorized'), 'errors' => []]);
+        $this->assertDatabaseHas(
+            'comments',
+            ['user_id' => $user->id, 'post_id' => $post->id, 'content' => $comment->content]
+        );
+    }
+
+    public function testDeleteNonExistentCommentGetFail()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $token = $user->createToken('test-token');
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace(['{post_id}', '{comment_id}'], [$post->id, 1001], $this->api_delete));
+        $response->assertNotFound()->assertJson(['message' => Creator::createFailureMessage('comment_not_found'), 'errors' => []]);
     }
 }

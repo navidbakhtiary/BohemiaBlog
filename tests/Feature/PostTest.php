@@ -17,6 +17,7 @@ class PostTest extends TestCase
     private $bearer_prefix = 'Bearer ';
     
     private $api_save = '/api/post/save';
+    private $api_delete = '/api/post/{post_id}/delete';
 
     public function testCreatePostByAdmin()
     {
@@ -123,5 +124,80 @@ class PostTest extends TestCase
             ]
         );
         $this->assertTrue(Post::where('subject', $post_1->subject)->count() == 1);
+    }
+
+    public function testDeletePostAndItsCommentsByAuthenticatedAdmin()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $token = $user->createToken('test-token');
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $factory = Factory::create();
+        $comment1 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $this->assertDatabaseHas(
+            'posts',
+            ['admin_id' => $admin->id, 'subject' => $post->subject, 'content' => $post->content]
+        );
+        $this->assertDatabaseHas(
+            'comments',
+            ['user_id' => $user1->id, 'post_id' => $post->id, 'content' => $comment1->content]
+        );
+        $this->assertDatabaseHas(
+            'comments',
+            ['user_id' => $user2->id, 'post_id' => $post->id, 'content' => $comment2->content]
+        );
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace('{post_id}', $post->id, $this->api_delete));
+        $response->assertOk()->assertJson(['message' => Creator::createSuccessMessage('post_deleted'), 'data' => []]);
+        $this->assertSoftDeleted($post)->
+            assertSoftDeleted(
+                'posts',
+                ['admin_id' => $admin->id, 'subject' => $post->subject, 'content' => $post->content]
+            );
+        $this->assertSoftDeleted(
+            'comments',
+            ['user_id' => $user1->id, 'post_id' => $post->id, 'content' => $comment1->content]
+        );
+        $this->assertSoftDeleted(
+            'comments',
+            ['user_id' => $user2->id, 'post_id' => $post->id, 'content' => $comment2->content]
+        );
+    }
+
+    public function testAuthenticatedNonAdminUserCanNotDeletePost()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $factory = Factory::create();
+        $comment = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $token = $user2->createToken('test-token');
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace('{post_id}', $post->id, $this->api_delete));
+        $response->assertForbidden()->assertJson(['message' => Creator::createFailureMessage('unauthorized'), 'errors' => []]);
+        $this->assertDatabaseHas(
+            'posts',
+            ['admin_id' => $admin->id, 'subject' => $post->subject, 'content' => $post->content]
+        );
+        $this->assertDatabaseHas(
+            'comments',
+            ['user_id' => $user1->id, 'post_id' => $post->id, 'content' => $comment->content]
+        );
+    }
+
+    public function testDeleteNonExistentPostGetFail()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $token = $user->createToken('test-token');
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace('{post_id}', 1001, $this->api_delete));
+        $response->assertNotFound()->assertJson(['message' => Creator::createFailureMessage('post_not_found'), 'errors' => []]);
     }
 }

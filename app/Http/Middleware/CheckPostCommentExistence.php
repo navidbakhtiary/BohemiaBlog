@@ -3,11 +3,10 @@
 namespace App\Http\Middleware;
 
 use App\Http\Responses\NotFoundResponse;
-use App\Models\Post;
 use Closure;
 use Illuminate\Http\Request;
 
-class CheckPostExistence
+class CheckPostCommentExistence
 {
     /**
      * Handle an incoming request.
@@ -18,13 +17,12 @@ class CheckPostExistence
      */
     public function handle(Request $request, Closure $next)
     {
-        $post = Post::find($request->route()->parameter('post_id'));
-        if ($post) 
-        {
-            $request->route()->setParameter('post', $post);
-            $request->route()->forgetParameter('post_id');
+        $comment = $request->route()->parameter('post')->comments()->find($request->route()->parameter('comment_id'));
+        if ($comment) {
+            $request->route()->setParameter('comment', $comment);
+            $request->route()->forgetParameter('comment_id');
             return $next($request);
         }
-        return (new NotFoundResponse())->sendPostNotFound();
+        return (new NotFoundResponse())->sendCommentNotFound();
     }
 }

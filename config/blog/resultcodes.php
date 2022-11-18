@@ -3,6 +3,7 @@
 return [
 
     'failures' => [
+        'comment_not_found' => 'E031',
         'invalid_inputs' => 'E091',
         'invalid_email_verification' => 'E092',
         'non_existent_user' => 'E141',
@@ -16,8 +17,10 @@ return [
 
     'successes' => [
         'comment_saved' => 'S031',
+        'comment_deleted' => 'S032',
         'empty_list' => 'S051',
         'post_saved' => 'S161',
+        'post_deleted' => 'S162',
         'saved' => 'S191',
         'user_registered' => 'S211',
         'user_logged_in' => 'S212',

@@ -5,15 +5,35 @@ namespace App\Http\Controllers;
 use App\Http\Requests\Post\PostStoreRequest;
 use App\Http\Responses\InternalServerErrorResponse;
 use App\Http\Responses\UnprocessableEntityResponse;
-use App\Models\Admin;
 use Exception;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
-    public function store(PostStoreRequest $request, Admin $admin)
+    public function destroy(Request $request)
     {
         try {
+            $post = $request->route()->parameter('post');
+            $comments = $post->comments;
+            DB::beginTransaction();
+
+            if ($post->delete() && ($post->comments()->delete() == count($comments))) {
+                DB::commit();
+                return $post->sendDeletedResponse();
+            }
+            DB::rollBack();
+            return (new UnprocessableEntityResponse())->sendMessage();
+        } catch (Exception $exc) {
+            DB::rollBack();
+            return (new InternalServerErrorResponse())->sendMessage();
+        }
+    }
+    
+    public function store(PostStoreRequest $request)
+    {
+        try {
+            $admin = $request->route()->parameter('admin');
             DB::beginTransaction();
             $post = $admin->posts()->create($request->all());
             if (!$post) 

@@ -5,6 +5,7 @@ use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
 use App\Http\Middleware\CheckPostExistence;
 use App\Http\Middleware\CheckUserIsAdmin;
+use App\Http\Middleware\CheckPostCommentExistence;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -35,8 +36,14 @@ Route::middleware(['auth:sanctum', CheckUserIsAdmin::class])->group(function ()
             {
                 Route::prefix('comment')->group(function ()
                 {
-                    Route::post('save', [CommentController::class, 'store'])->withoutMiddleware(CheckUserIsAdmin::class);   
+                    Route::post('save', [CommentController::class, 'store'])->withoutMiddleware(CheckUserIsAdmin::class);
+                    Route::middleware(CheckPostCommentExistence::class)->
+                        prefix('{comment_id}')->group(function () 
+                        {
+                            Route::post('delete', [CommentController::class, 'destroy']);
+                        });   
                 });
+                Route::post('delete', [PostController::class, 'destroy']);
             }); 
     });
 });
