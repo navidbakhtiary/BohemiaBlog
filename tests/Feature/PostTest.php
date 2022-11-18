@@ -166,4 +166,27 @@ class PostTest extends TestCase
             ['user_id' => $user2->id, 'post_id' => $post->id, 'content' => $comment2->content]
         );
     }
+
+    public function testAuthenticatedNonAdminUserCanNotDeletePost()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $factory = Factory::create();
+        $comment = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $token = $user2->createToken('test-token');
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace('{post_id}', $post->id, $this->api_delete));
+        $response->assertForbidden()->assertJson(['message' => Creator::createFailureMessage('unauthorized'), 'errors' => []]);
+        $this->assertDatabaseHas(
+            'posts',
+            ['admin_id' => $admin->id, 'subject' => $post->subject, 'content' => $post->content]
+        );
+        $this->assertDatabaseHas(
+            'comments',
+            ['user_id' => $user1->id, 'post_id' => $post->id, 'content' => $comment->content]
+        );
+    }
 }
