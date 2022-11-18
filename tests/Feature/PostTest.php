@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Classes\Creator;
 use App\Classes\HttpStatus;
+use App\Models\Comment;
 use App\Models\Post;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -18,6 +19,7 @@ class PostTest extends TestCase
     
     private $api_save = '/api/post/save';
     private $api_delete = '/api/post/{post_id}/delete';
+    private $api_list = '/api/post/list';
 
     public function testCreatePostByAdmin()
     {
@@ -199,5 +201,42 @@ class PostTest extends TestCase
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
             postJson(str_replace('{post_id}', 1001, $this->api_delete));
         $response->assertNotFound()->assertJson(['message' => Creator::createFailureMessage('post_not_found'), 'errors' => []]);
+    }
+
+    public function testUserCanGetListOfPosts()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $post1 = Post::factory()->create();
+        $post2 = Post::factory()->create();
+        $comment1 = $post1->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post2->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment3 = $post1->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $comment4 = $post2->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $comment5 = $post1->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $response = $this->getJson($this->api_list);
+        $response->assertOk()->
+            assertJsonFragment(['message' => Creator::createSuccessMessage('posts_list')])->
+            assertJsonStructure([
+                'message', 'data' => ['posts' => []], 'paginate' => []
+            ])->
+            assertJsonCount(2, 'subject')->
+            assertJsonFragment([
+                'id' => $post2->id,
+                'subject' => $post2->subject,
+                'updated at' => $post2->updated_at,
+                'description' => substr($post2->content, 0, 250),
+                'comments count' => 3,
+                'author' => [
+                    'id' => $user->id,
+                    'name' => $user->name,
+                    'surname' => $user->surname,
+                    'nickname' => $user->nickname,
+                    'username' => $user->username,
+                ]
+            ]);
     }
 }
