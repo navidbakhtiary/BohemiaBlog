@@ -17,7 +17,7 @@ class PostTest extends TestCase
     private $bearer_prefix = 'Bearer ';
     
     private $api_save = '/api/post/save';
-    private $api_delete = '/api/post/{[post_id}/delete';
+    private $api_delete = '/api/post/{post_id}/delete';
 
     public function testCreatePostByAdmin()
     {

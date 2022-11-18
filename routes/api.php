@@ -43,6 +43,7 @@ Route::middleware(['auth:sanctum', CheckUserIsAdmin::class])->group(function ()
                             Route::post('delete', [CommentController::class, 'destroy']);
                         });   
                 });
+                Route::post('delete', [PostController::class, 'destroy']);
             }); 
     });
 });

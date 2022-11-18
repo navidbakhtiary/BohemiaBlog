@@ -20,6 +20,7 @@ return [
         'comment_deleted' => 'S032',
         'empty_list' => 'S051',
         'post_saved' => 'S161',
+        'post_deleted' => 'S162',
         'saved' => 'S191',
         'user_registered' => 'S211',
         'user_logged_in' => 'S212',
