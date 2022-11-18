@@ -141,6 +141,37 @@ class UserTest extends TestCase
         );
     }
 
+    public function testNewUserRegistrationDoesNotGenerateDuplicateUsernames()
+    {
+        $user1 = User::factory()->make();
+        $user1->email = 'navidbakhtiary@gmail.com';
+        $user1->save();
+        $user2 = User::factory()->make();
+        $user2->name = $user1->name;
+        $user2->surname = $user1->surname;
+        $user2->email = 'navidbakhtiary@yahoo.com';
+        $attributes = $user2->toArray();
+        $attributes['password'] = 'Ab123456';
+        $username = $user2->surname . substr($user2->name, 0, 3);
+        $response = $this->postJson($this->api_register, $attributes);
+        $response->assertCreated()->assertJsonStructure(['message' => [], 'data' => ['user' => []]])->assertJsonFragment(
+                [
+                    'message' => Creator::createSuccessMessage('user_registered')
+                ]
+            );
+        $this->assertDatabaseHas(
+            'users',
+            [
+                'name' => $attributes['name'],
+                'surname' => $attributes['surname'],
+                'email' => $attributes['email'],
+                'phone' => $attributes['phone']
+            ]
+        );
+        $this->assertTrue(User::where('username', $user1->username)->count() == 1);
+        $this->assertTrue(User::where('username', 'like', $username . '%')->count() == 2);
+    }
+
     public function testUserLogin()
     {
         $user = User::factory()->make();
@@ -216,7 +247,6 @@ class UserTest extends TestCase
                 ]
             );
     }
-
 
     public function testUserCanLoginWithUsernameOrPhoneNumber()
     {
