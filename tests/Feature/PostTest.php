@@ -2,14 +2,13 @@
 
 namespace Tests\Feature;
 
-use App\Classes\Creator;
-use App\Classes\HttpStatus;
-use App\Models\Comment;
+use Faker\Factory;
+use Tests\TestCase;
 use App\Models\Post;
 use App\Models\User;
+use App\Classes\Creator;
+use App\Classes\HttpStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use Faker\Factory;
 
 class PostTest extends TestCase
 {
@@ -221,22 +220,51 @@ class PostTest extends TestCase
         $response->assertOk()->
             assertJsonFragment(['message' => Creator::createSuccessMessage('posts_list')])->
             assertJsonStructure([
-                'message', 'data' => ['posts' => []], 'paginate' => []
+                'message', 'data' => ['posts' => []], 'pagination' => []
             ])->
-            assertJsonCount(2, 'subject')->
             assertJsonFragment([
-                'id' => $post2->id,
-                'subject' => $post2->subject,
-                'updated at' => $post2->updated_at,
-                'description' => substr($post2->content, 0, 250),
-                'comments count' => 3,
-                'author' => [
-                    'id' => $user->id,
-                    'name' => $user->name,
-                    'surname' => $user->surname,
-                    'nickname' => $user->nickname,
-                    'username' => $user->username,
+                'posts' => 
+                [
+                    [
+                        'id' => $post1->id,
+                        'subject' => $post1->subject,
+                        'updated at' => $post1->updated_at,
+                        'summary' => substr($post1->content, 0, 250),
+                        'comments count' => 3,
+                        'author' => [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'surname' => $user->surname,
+                            'nickname' => $user->nickname,
+                            'username' => $user->username,
+                        ]
+                    ],
+                    [
+                        'id' => $post2->id,
+                        'subject' => $post2->subject,
+                        'updated at' => $post2->updated_at,
+                        'summary' => substr($post2->content, 0, 250),
+                        'comments count' => 2,
+                        'author' => [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'surname' => $user->surname,
+                            'nickname' => $user->nickname,
+                            'username' => $user->username,
+                        ]
+                    ]
                 ]
             ]);
+    }
+
+    public function testUserGetEmptyListWhenNoPostHasBeenSaved()
+    {
+        $user = User::factory()->create();
+        $response = $this->getJson($this->api_list);
+        $response->assertOk()->assertJson([
+            'message' => Creator::createSuccessMessage('empty_posts_list'),
+            'data' => [],
+            'pagination' => null
+        ]);
     }
 }

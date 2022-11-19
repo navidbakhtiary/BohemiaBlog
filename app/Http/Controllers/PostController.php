@@ -4,7 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Post\PostStoreRequest;
 use App\Http\Responses\InternalServerErrorResponse;
+use App\Http\Responses\OkResponse;
 use App\Http\Responses\UnprocessableEntityResponse;
+use App\Models\Post;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,6 +31,20 @@ class PostController extends Controller
             return (new InternalServerErrorResponse())->sendMessage();
         }
     }
+
+    public function index()
+    {
+        $posts = Post::listItem()->
+            withCount('comments')->
+            orderByDesc('comments_count')->
+            orderByDesc('updated_at')->
+            paginate(20);
+        if($posts->count())
+        {
+            return (new OkResponse())->sendPostsList($posts);
+        }
+        return (new OkResponse())->sendEmptyPostList();
+    }
     
     public function store(PostStoreRequest $request)
     {
@@ -47,4 +63,5 @@ class PostController extends Controller
             return (new InternalServerErrorResponse())->sendMessage();
         }
     }
+
 }

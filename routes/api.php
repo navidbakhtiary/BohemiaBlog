@@ -30,6 +30,7 @@ Route::middleware(['auth:sanctum', CheckUserIsAdmin::class])->group(function ()
 {
     Route::prefix('post')->group(function () 
     {
+        Route::get('list', [PostController::class, 'index'])->withoutMiddleware(['auth:sanctum', CheckUserIsAdmin::class]);
         Route::post('save', [PostController::class, 'store']);
         Route::middleware(CheckPostExistence::class)->
             prefix('{post_id}')->group(function ()

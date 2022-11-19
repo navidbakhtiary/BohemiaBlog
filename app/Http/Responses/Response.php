@@ -4,9 +4,9 @@ namespace App\Http\Responses;
 
 class Response
 {
-    public function sendData($status, $message = null, $data = [])
+    public function sendData($status, $message = null, $data = [], $pagination = null)
     {
-        return response(['message' => $message, 'data' => $data], $status)
+        return response(['message' => $message, 'data' => $data, 'pagination' => $pagination], $status)
             ->header('Content-Type', 'application/json');
     }
 
