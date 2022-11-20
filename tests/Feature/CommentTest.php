@@ -220,4 +220,17 @@ class CommentTest extends TestCase
                 ]
             ]);
     }
+
+    public function testUserGetEmptyListWhenNoCommentHasBeenSavedOnPost()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $response = $this->getJson(str_replace('{post_id}', $post->id, $this->api_list));
+        $response->assertOk()->assertJson([
+            'message' => Creator::createSuccessMessage('empty_comments_list'),
+            'data' => [],
+            'pagination' => null
+        ]);
+    }
 }
