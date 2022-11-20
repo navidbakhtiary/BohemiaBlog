@@ -19,6 +19,7 @@ class PostTest extends TestCase
     private $api_save = '/api/post/save';
     private $api_delete = '/api/post/{post_id}/delete';
     private $api_list = '/api/post/list';
+    private $api_show = '/api/post/{post_id}';
 
     public function testCreatePostByAdmin()
     {
@@ -266,5 +267,40 @@ class PostTest extends TestCase
             'data' => [],
             'pagination' => null
         ]);
+    }
+
+    public function testUserCanGetSpecificPostInformation()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $post1 = Post::factory()->create();
+        $comment1 = $post1->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post1->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $response = $this->getJson(str_replace('{post_id}', $post1->id, $this->api_show));
+        $response->assertOk()->
+            assertJsonFragment([
+                'message' => Creator::createSuccessMessage('post_got'),
+                'data' => [
+                    'post' => [
+                        'id' => $post1->id,
+                        'subject' => $post1->subject,
+                        'content' => $post1->content,
+                        'created at' => $post1->created_at,
+                        'updated at' => $post1->updated_at,
+                        'author' => [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'surname' => $user->surname,
+                            'nickname' => $user->nickname,
+                            'username' => $user->username,
+                        ],
+                        'comments count' => 2,
+                        'comments link' => Creator::createPostCommentsLink($post1->id)
+                    ]
+                ]
+            ]);
     }
 }
