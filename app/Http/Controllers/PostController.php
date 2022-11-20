@@ -41,6 +41,12 @@ class PostController extends Controller
             paginate(20);
         return (new OkResponse())->sendPostsList($posts);
     }
+    
+    public function show(Request $request)
+    {
+        $post = $request->route()->parameter('post');
+        return $post->sendInformationResponse();
+    }
 
     public function store(PostStoreRequest $request)
     {

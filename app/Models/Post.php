@@ -3,16 +3,19 @@
 namespace App\Models;
 
 use App\Classes\Creator;
+use App\Http\Resources\PostInformationResource;
 use App\Http\Resources\PostResource;
 use App\Http\Responses\CreatedResponse;
 use App\Http\Responses\OkResponse;
 use App\Interfaces\CreatedModelInterface;
+use App\Interfaces\DeletedModelInterface;
+use App\Interfaces\ShowModelInterface;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\DB;
 
-class Post extends Model implements CreatedModelInterface
+class Post extends Model implements CreatedModelInterface, DeletedModelInterface, ShowModelInterface
 {
     use HasFactory, SoftDeletes;
 
@@ -54,6 +57,13 @@ class Post extends Model implements CreatedModelInterface
     {
         return (new OkResponse())->sendOk(
             Creator::createSuccessMessage('post_deleted')
+        );
+    }
+
+    public function sendInformationResponse()
+    {
+        return (new OkResponse())->sendOk(
+            Creator::createSuccessMessage('post_got'), ['post' => new PostInformationResource($this)]
         );
     }
 }

@@ -21,6 +21,7 @@ return [
         'empty_list' => 'No information is saved. The list is empty.',
         'empty_posts_list' => 'No post is saved. The list is empty.',
         'post_deleted' => 'Post was deleted successfully.',
+        'post_got' => 'Post information successfully returned.',
         'posts_list' => 'Posts list successfully returned.',
         'post_saved' => 'Post was saved successfully.',
         'saved' => 'Information was saved successfully.',

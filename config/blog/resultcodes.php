@@ -23,6 +23,7 @@ return [
         'post_saved' => 'S161',
         'post_deleted' => 'S162',
         'posts_list' => 'S163',
+        'post_got' => 'S164',
         'saved' => 'S191',
         'user_registered' => 'S211',
         'user_logged_in' => 'S212',

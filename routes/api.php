@@ -35,8 +35,10 @@ Route::middleware(['auth:sanctum', CheckUserIsAdmin::class])->group(function ()
         Route::middleware(CheckPostExistence::class)->
             prefix('{post_id}')->group(function ()
             {
+                Route::get('/', [PostController::class, 'show'])->withoutMiddleware(['auth:sanctum', CheckUserIsAdmin::class]);
                 Route::prefix('comment')->group(function ()
                 {
+                    Route::get('/list', [CommentController::class, 'index'])->withoutMiddleware(['auth:sanctum', CheckUserIsAdmin::class])->name('post.comments');
                     Route::post('save', [CommentController::class, 'store'])->withoutMiddleware(CheckUserIsAdmin::class);
                     Route::middleware(CheckPostCommentExistence::class)->
                         prefix('{comment_id}')->group(function () 
