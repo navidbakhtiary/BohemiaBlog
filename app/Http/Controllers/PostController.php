@@ -39,13 +39,9 @@ class PostController extends Controller
             orderByDesc('comments_count')->
             orderByDesc('updated_at')->
             paginate(20);
-        if($posts->count())
-        {
-            return (new OkResponse())->sendPostsList($posts);
-        }
-        return (new OkResponse())->sendEmptyPostList();
+        return (new OkResponse())->sendPostsList($posts);
     }
-    
+
     public function store(PostStoreRequest $request)
     {
         try {

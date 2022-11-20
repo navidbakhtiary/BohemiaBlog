@@ -21,11 +21,16 @@ class OkResponse extends Response
 
     public function sendPostsList($posts)
     {
-        return $this->sendData(
-            HttpStatus::Ok, 
-            Creator::createSuccessMessage('posts_list'), 
-            ['posts' => PostIndexResource::collection($posts)], 
-            new PaginateResource($posts)
-        );
+        if ($posts->count())
+        {
+            return $this->sendPaginatedData(
+                HttpStatus::Ok, 
+                Creator::createSuccessMessage('posts_list'), 
+                ['posts' => PostIndexResource::collection($posts)], 
+                new PaginateResource($posts)
+            );
+        } else {
+            return $this->sendPaginatedData(HttpStatus::Ok, Creator::createSuccessMessage('empty_posts_list'));
+        }
     }
 }
