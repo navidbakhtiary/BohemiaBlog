@@ -233,4 +233,16 @@ class CommentTest extends TestCase
             'pagination' => null
         ]);
     }
+
+    public function testGetCommentsOfNonExistentPostWillFail()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $comment1 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $response = $this->getJson(str_replace('{post_id}', 2, $this->api_list));
+        $response->assertNotFound()->assertJson(['message' => Creator::createFailureMessage('post_not_found'), 'errors' => []]);
+    }
 }
