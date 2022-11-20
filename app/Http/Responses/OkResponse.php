@@ -4,14 +4,31 @@ namespace App\Http\Responses;
 
 use App\Classes\Creator;
 use App\Classes\HttpStatus;
+use App\Http\Resources\CommentIndexResource;
 use App\Http\Resources\PaginateResource;
 use App\Http\Resources\PostIndexResource;
+use App\Http\Resources\SimplePostResource;
 
 class OkResponse extends Response
 {
-    public function sendEmptyPostList()
+    public function sendCommentsList($post, $comments)
     {
-        return $this->sendData(HttpStatus::Ok, Creator::createSuccessMessage('empty_posts_list'));
+        if ($comments->count()) 
+        {
+            return $this->sendPaginatedData(
+                HttpStatus::Ok,
+                Creator::createSuccessMessage('comments_list'),
+                ['post' => new SimplePostResource($post), 'comments' => CommentIndexResource::collection($comments)],
+                new PaginateResource($comments)
+            );
+        } else {
+            return $this->sendPaginatedData(HttpStatus::Ok, Creator::createSuccessMessage('empty_comments_list'));
+        }
+    }
+
+    public function sendEmptyCommentsList()
+    {
+        return $this->sendData(HttpStatus::Ok, Creator::createSuccessMessage('empty_comments_list'));
     }
 
     public function sendOk($message, $data = [])

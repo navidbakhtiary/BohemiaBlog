@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\Comment\CommentStoreRequest;
 use App\Http\Responses\InternalServerErrorResponse;
+use App\Http\Responses\OkResponse;
 use App\Http\Responses\UnprocessableEntityResponse;
 use Exception;
 use Illuminate\Http\Request;
@@ -27,6 +28,13 @@ class CommentController extends Controller
             DB::rollBack();
             return (new InternalServerErrorResponse())->sendMessage();
         }
+    }
+
+    public function index(Request $request)
+    {
+        $post = $request->route()->parameter('post');
+        $comments = $post->comments()->paginate(20);
+        return (new OkResponse())->sendCommentsList($post, $comments);
     }
 
     public function store(CommentStoreRequest $request)
