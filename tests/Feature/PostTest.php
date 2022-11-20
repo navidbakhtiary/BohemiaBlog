@@ -303,4 +303,13 @@ class PostTest extends TestCase
                 ]
             ]);
     }
+
+    public function testGetNonExistentPostWillFail()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $response = $this->getJson(str_replace('{post_id}', 2, $this->api_show));
+        $response->assertNotFound()->assertJson(['message' => Creator::createFailureMessage('post_not_found'), 'errors' => []]);
+    }
 }
