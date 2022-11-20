@@ -4,6 +4,11 @@ namespace App\Classes;
 
 class Creator
 {
+    static function createPostCommentsLink(int $post_id)
+    {
+        return route('post.comments', ['post_id' => $post_id]);
+    }
+
     static function createFailureMessage(string $key)
     {
         return [

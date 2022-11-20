@@ -15,4 +15,10 @@ class Response
         return response(['message' => $message, 'errors' => $errors], $status)
             ->header('Content-Type', 'application/json');
     }
+
+    public function sendPaginatedData($status, $message = null, $data = [], $pagination = null)
+    {
+        return response(['message' => $message, 'data' => $data, 'pagination' => $pagination], $status)
+            ->header('Content-Type', 'application/json');
+    }
 }

@@ -2,13 +2,13 @@
 
 namespace Tests\Feature;
 
-use App\Classes\Creator;
-use App\Classes\HttpStatus;
+use Faker\Factory;
+use Tests\TestCase;
 use App\Models\Post;
 use App\Models\User;
+use App\Classes\Creator;
+use App\Classes\HttpStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Tests\TestCase;
-use Faker\Factory;
 
 class PostTest extends TestCase
 {
@@ -18,6 +18,8 @@ class PostTest extends TestCase
     
     private $api_save = '/api/post/save';
     private $api_delete = '/api/post/{post_id}/delete';
+    private $api_list = '/api/post/list';
+    private $api_show = '/api/post/{post_id}';
 
     public function testCreatePostByAdmin()
     {
@@ -198,6 +200,116 @@ class PostTest extends TestCase
         $token = $user->createToken('test-token');
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
             postJson(str_replace('{post_id}', 1001, $this->api_delete));
+        $response->assertNotFound()->assertJson(['message' => Creator::createFailureMessage('post_not_found'), 'errors' => []]);
+    }
+
+    public function testUserCanGetListOfPosts()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $post1 = Post::factory()->create();
+        $post2 = Post::factory()->create();
+        $comment1 = $post1->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post2->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment3 = $post1->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $comment4 = $post2->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $comment5 = $post1->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $response = $this->getJson($this->api_list);
+        $response->assertOk()->
+            assertJsonFragment(['message' => Creator::createSuccessMessage('posts_list')])->
+            assertJsonStructure([
+                'message', 'data' => ['posts' => []], 'pagination' => []
+            ])->
+            assertJsonFragment([
+                'posts' => 
+                [
+                    [
+                        'id' => $post1->id,
+                        'subject' => $post1->subject,
+                        'updated at' => $post1->updated_at,
+                        'summary' => substr($post1->content, 0, 250),
+                        'comments count' => 3,
+                        'author' => [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'surname' => $user->surname,
+                            'nickname' => $user->nickname,
+                            'username' => $user->username,
+                        ]
+                    ],
+                    [
+                        'id' => $post2->id,
+                        'subject' => $post2->subject,
+                        'updated at' => $post2->updated_at,
+                        'summary' => substr($post2->content, 0, 250),
+                        'comments count' => 2,
+                        'author' => [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'surname' => $user->surname,
+                            'nickname' => $user->nickname,
+                            'username' => $user->username,
+                        ]
+                    ]
+                ]
+            ]);
+    }
+
+    public function testUserGetEmptyListWhenNoPostHasBeenSaved()
+    {
+        $user = User::factory()->create();
+        $response = $this->getJson($this->api_list);
+        $response->assertOk()->assertJson([
+            'message' => Creator::createSuccessMessage('empty_posts_list'),
+            'data' => [],
+            'pagination' => null
+        ]);
+    }
+
+    public function testUserCanGetSpecificPostInformation()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $post1 = Post::factory()->create();
+        $comment1 = $post1->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post1->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $response = $this->getJson(str_replace('{post_id}', $post1->id, $this->api_show));
+        $response->assertOk()->
+            assertJsonFragment([
+                'message' => Creator::createSuccessMessage('post_got'),
+                'data' => [
+                    'post' => [
+                        'id' => $post1->id,
+                        'subject' => $post1->subject,
+                        'content' => $post1->content,
+                        'created at' => $post1->created_at,
+                        'updated at' => $post1->updated_at,
+                        'author' => [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'surname' => $user->surname,
+                            'nickname' => $user->nickname,
+                            'username' => $user->username,
+                        ],
+                        'comments count' => 2,
+                        'comments link' => Creator::createPostCommentsLink($post1->id)
+                    ]
+                ]
+            ]);
+    }
+
+    public function testGetNonExistentPostWillFail()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $response = $this->getJson(str_replace('{post_id}', 2, $this->api_show));
         $response->assertNotFound()->assertJson(['message' => Creator::createFailureMessage('post_not_found'), 'errors' => []]);
     }
 }

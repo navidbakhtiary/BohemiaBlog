@@ -41,4 +41,9 @@ class Comment extends Model implements CreatedModelInterface, DeletedModelInterf
             Creator::createSuccessMessage('comment_deleted')
         );
     }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

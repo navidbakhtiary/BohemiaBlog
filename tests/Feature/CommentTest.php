@@ -17,8 +17,9 @@ class CommentTest extends TestCase
 
     private $bearer_prefix = 'Bearer ';
     
-    private $api_save = '/api/post/{id}/comment/save';
+    private $api_save = '/api/post/{post_id}/comment/save';
     private $api_delete = '/api/post/{post_id}/comment/{comment_id}/delete';
+    private $api_list = '/api/post/{post_id}/comment/list';
 
     public function testSaveCommentOnPostByAuthenticatedUser()
     {
@@ -29,7 +30,7 @@ class CommentTest extends TestCase
         $token = $user->createToken('test-token');
         $comment = Comment::factory()->make();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            postJson(str_replace('{id}', $post->id, $this->api_save), $comment->toArray());
+            postJson(str_replace('{post_id}', $post->id, $this->api_save), $comment->toArray());
         $response->
             assertCreated()->
             assertJsonStructure(
@@ -50,7 +51,7 @@ class CommentTest extends TestCase
         $token = $user->createToken('test-token');
         $content = Factory::create()->paragraph(40);
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            postJson(str_replace('{id}', $post->id, $this->api_save), ['content' => Factory::create()->sentences()]);
+            postJson(str_replace('{post_id}', $post->id, $this->api_save), ['content' => Factory::create()->sentences()]);
         $response->assertStatus(HttpStatus::BadRequest)->assertJson(
             [
                 'message' => Creator::createFailureMessage('invalid_inputs'),
@@ -65,7 +66,7 @@ class CommentTest extends TestCase
         $this->assertDatabaseMissing('comments', ['user_id' => $user->id, 'post_id' => $post->id]);
 
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            postJson(str_replace('{id}', $post->id, $this->api_save), ['content' => $content]);
+            postJson(str_replace('{post_id}', $post->id, $this->api_save), ['content' => $content]);
         $response->assertStatus(HttpStatus::BadRequest)->assertJson(
             [
                 'message' => Creator::createFailureMessage('invalid_inputs'),
@@ -87,7 +88,7 @@ class CommentTest extends TestCase
         $post = Post::factory()->create();
         $comment = Comment::factory()->make();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . hash('sha256', 'fake token')])->
-            postJson(str_replace('{id}', $post->id, $this->api_save), $comment->toArray());
+            postJson(str_replace('{post_id}', $post->id, $this->api_save), $comment->toArray());
         $response->assertUnauthorized()->assertJson(
             [
                 'message' => Creator::createFailureMessage('unauthenticated'),
@@ -101,7 +102,7 @@ class CommentTest extends TestCase
         $user = User::factory()->create();
         $token = $user->createToken('test-token');
         $comment = Comment::factory()->make();
-        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->postJson(str_replace('{id}', 456, $this->api_save), $comment->toArray());
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->postJson(str_replace('{post_id}', 456, $this->api_save), $comment->toArray());
         $response->assertNotFound()->assertJson([
                 'message' => Creator::createFailureMessage('post_not_found'),
                 'errors' => []
@@ -162,5 +163,86 @@ class CommentTest extends TestCase
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
             postJson(str_replace(['{post_id}', '{comment_id}'], [$post->id, 1001], $this->api_delete));
         $response->assertNotFound()->assertJson(['message' => Creator::createFailureMessage('comment_not_found'), 'errors' => []]);
+    }
+
+    public function testUserCanGetListOfCommentsOfPost()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $comment1 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $comment3 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $response = $this->getJson(str_replace('{post_id}', $post->id, $this->api_list));
+        $response->assertOk()->
+            assertJsonStructure(['message', 'data' => ['post' => [], 'comments' => []], 'pagination' => []])->
+            assertJsonFragment([
+                'message' => Creator::createSuccessMessage('comments_list'),
+                'data' =>
+                [
+                    'post' => ['id' => $post->id, 'subject' => $post->subject], 
+                    'comments' =>
+                    [
+                        [
+                            'id' => $comment1->id,
+                            'content' => $comment1->content,
+                            'created_at' => $comment1->created_at,
+                            'user' => [
+                                'id' => $user1->id,
+                                'name' => $user1->name,
+                                'surname' => $user1->surname
+                            ]
+                        ],
+                        [
+                            'id' => $comment2->id,
+                            'content' => $comment2->content,
+                            'created_at' => $comment2->created_at,
+                            'user' => [
+                                'id' => $user2->id,
+                                'name' => $user2->name,
+                                'surname' => $user2->surname
+                            ]
+                        ],
+                        [
+                            'id' => $comment3->id,
+                            'content' => $comment3->content,
+                            'created_at' => $comment3->created_at,
+                            'user' => [
+                                'id' => $user1->id,
+                                'name' => $user1->name,
+                                'surname' => $user1->surname
+                            ]
+                        ]
+                    ]
+                ]
+            ]);
+    }
+
+    public function testUserGetEmptyListWhenNoCommentHasBeenSavedOnPost()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $response = $this->getJson(str_replace('{post_id}', $post->id, $this->api_list));
+        $response->assertOk()->assertJson([
+            'message' => Creator::createSuccessMessage('empty_comments_list'),
+            'data' => [],
+            'pagination' => null
+        ]);
+    }
+
+    public function testGetCommentsOfNonExistentPostWillFail()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $comment1 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $response = $this->getJson(str_replace('{post_id}', 2, $this->api_list));
+        $response->assertNotFound()->assertJson(['message' => Creator::createFailureMessage('post_not_found'), 'errors' => []]);
     }
 }

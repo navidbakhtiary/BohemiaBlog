@@ -2,9 +2,10 @@
 
 namespace App\Http\Resources;
 
+use App\Classes\Creator;
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class PostResource extends JsonResource
+class PostInformationResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -19,7 +20,10 @@ class PostResource extends JsonResource
             'subject' => $this->subject,
             'content' => $this->content,
             'created at' => $this->created_at,
+            'updated at' => $this->updated_at,
             'author' => new AuthorResource($this->resource->author),
+            'comments count' => count($this->resource->comments),
+            'comments link' => Creator::createPostCommentsLink($this->id)
         ];
     }
 }
