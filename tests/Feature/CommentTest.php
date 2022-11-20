@@ -163,4 +163,60 @@ class CommentTest extends TestCase
             postJson(str_replace(['{post_id}', '{comment_id}'], [$post->id, 1001], $this->api_delete));
         $response->assertNotFound()->assertJson(['message' => Creator::createFailureMessage('comment_not_found'), 'errors' => []]);
     }
+
+    public function testUserCanGetListOfCommentsOfPost()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $comment1 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $comment3 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $response = $this->getJson(str_replace('{post_id}', $post->id, $this->api_list));
+        $response->assertOk()->
+            assertJsonStructure(['message', 'data' => ['post' => [], 'comments' => []], 'pagination' => []])->
+            assertJsonFragment([
+                'message' => Creator::createSuccessMessage('comments_list'),
+                'data' =>
+                [
+                    'post' => ['id' => $post->id, 'subject' => $post->subject], 
+                    'comments' =>
+                    [
+                        [
+                            'id' => $comment1->id,
+                            'content' => $comment1->content,
+                            'created_at' => $comment1->created_at,
+                            'user' => [
+                                'id' => $user1->id,
+                                'name' => $user1->name,
+                                'surname' => $user1->surname
+                            ]
+                        ],
+                        [
+                            'id' => $comment2->id,
+                            'content' => $comment2->content,
+                            'created_at' => $comment2->created_at,
+                            'user' => [
+                                'id' => $user2->id,
+                                'name' => $user2->name,
+                                'surname' => $user2->surname
+                            ]
+                        ],
+                        [
+                            'id' => $comment3->id,
+                            'content' => $comment3->content,
+                            'created_at' => $comment3->created_at,
+                            'user' => [
+                                'id' => $user1->id,
+                                'name' => $user1->name,
+                                'surname' => $user1->surname
+                            ]
+                        ]
+                    ]
+                ]
+            ]);
+    }
 }
