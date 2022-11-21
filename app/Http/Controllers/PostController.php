@@ -17,10 +17,8 @@ class PostController extends Controller
     {
         try {
             $post = $request->route()->parameter('post');
-            $comments = $post->comments;
             DB::beginTransaction();
-
-            if ($post->delete() && ($post->comments()->delete() == count($comments))) {
+            if ($post->delete()) {
                 DB::commit();
                 return $post->sendDeletedResponse();
             }
