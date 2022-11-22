@@ -372,4 +372,20 @@ class PostTest extends TestCase
                 ]
             ]);
     }
+
+    public function testNonAdminUserCanNotGetListOfDeletedPosts()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $user = User::factory()->create();
+        $token = $user->createToken('test-token');
+        $post->delete();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            getJson($this->api_trash_list);
+        $response->assertForbidden()->
+            assertJson(['message' => Creator::createFailureMessage('unauthorized'), 'errors' => []]);
+    
+    }
 }
