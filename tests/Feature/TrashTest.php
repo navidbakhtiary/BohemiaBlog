@@ -16,6 +16,7 @@ class TrashTest extends TestCase
     private $bearer_prefix = 'Bearer ';
     
     private $api_post_list = '/api/trash/post/list';
+    private $api_show = '/api/trash/post/{post_id}';
 
     public function testAdminCanGetListOfDeletedPosts()
     {
@@ -102,5 +103,43 @@ class TrashTest extends TestCase
             getJson($this->api_post_list);
         $response->assertOk()->
             assertJson(['message' => Creator::createSuccessMessage('empty_deleted_posts_list'), 'data' => []]);
+    }
+
+    public function testAdminCanGetSpecificDeletedPostInformation()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $post = Post::factory()->create();
+        $comment1 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $post->delete();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            getJson(str_replace('{post_id}', $post->id, $this->api_show));
+        $response->assertOk()->assertJsonFragment([
+            'message' => Creator::createSuccessMessage('deleted_post_got'),
+            'data' => [
+                'deleted post' => [
+                    'id' => $post->id,
+                    'subject' => $post->subject,
+                    'content' => $post->content,
+                    'created at' => $post->created_at,
+                    'updated at' => $post->updated_at,
+                    'deleted at' => $post->deleted_at,
+                    'author' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'surname' => $user->surname,
+                        'nickname' => $user->nickname,
+                        'username' => $user->username,
+                    ],
+                    'comments count' => 2,
+                    'comments link' => Creator::createDeletedPostCommentsLink($post->id)
+                ]
+            ]
+        ]);
     }
 }
