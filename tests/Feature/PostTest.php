@@ -386,6 +386,18 @@ class PostTest extends TestCase
             getJson($this->api_trash_list);
         $response->assertForbidden()->
             assertJson(['message' => Creator::createFailureMessage('unauthorized'), 'errors' => []]);
-    
+    }
+
+    public function testAdminGetEmptyDeletedPostsListWhenNoPostHasBeenDeleted()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->create();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            getJson($this->api_trash_list);
+        $response->assertOk()->
+            assertJson(['message' => Creator::createSuccessMessage('empty_deleted_posts_list'), 'data' => []]);
     }
 }

@@ -19,6 +19,7 @@ return [
         'comment_saved' => 'S031',
         'comment_deleted' => 'S032',
         'deleted_posts_list' => 'S041',
+        'empty_deleted_posts_list' => 'S051',
         'empty_list' => 'S051',
         'empty_posts_list' => 'S052',
         'post_saved' => 'S161',

@@ -37,7 +37,7 @@ class OkResponse extends Response
                 new PaginateResource($deleted_posts)
             );
         } else {
-            return $this->sendPaginatedData(HttpStatus::Ok, Creator::createSuccessMessage('empty_posts_list'));
+            return $this->sendPaginatedData(HttpStatus::Ok, Creator::createSuccessMessage('empty_deleted_posts_list'));
         }
     }
 
