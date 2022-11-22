@@ -33,9 +33,14 @@ class Post extends Model implements CreatedModelInterface, DeletedModelInterface
         return $this->hasMany(Comment::class);
     }
 
-    public function commentsCount()
+    public function deletedComments()
     {
-        return $this->comments()->count();
+        return $this->hasMany(Comment::class)->onlyTrashed();
+    }
+
+    public function scopeDeletedListItem()
+    {
+        return $this->select(['id', 'admin_id', 'subject', 'created_at', 'deleted_at', DB::raw("SUBSTR(content, 1, 250) as summary")]);
     }
 
     public function scopeListItem()

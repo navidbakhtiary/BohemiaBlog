@@ -49,4 +49,9 @@ Route::middleware(['auth:sanctum', CheckUserIsAdmin::class])->group(function ()
                 Route::post('delete', [PostController::class, 'destroy']);
             }); 
     });
+    Route::prefix('trash')->group(function () {
+        Route::prefix('post')->group(function () {
+            Route::get('/list', [PostController::class, 'deletedIndex']);
+        });
+    });
 });
