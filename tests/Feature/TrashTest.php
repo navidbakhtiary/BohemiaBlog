@@ -220,7 +220,22 @@ class TrashTest extends TestCase
         $post = Post::factory()->create();
         $comment = $post->comments()->create(['user_id' => $user->id, 'content' => $factory->paragraph()]);
         $post->delete();
-        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->getJson(str_replace('{post_id}', $post->id, $this->api_comment_list));
-        $response->assertForbidden()->assertJsonFragment(['message' => Creator::createFailureMessage('unauthorized'), 'errors' => []]);
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            getJson(str_replace('{post_id}', $post->id, $this->api_comment_list));
+        $response->assertForbidden()->
+            assertJsonFragment(['message' => Creator::createFailureMessage('unauthorized'), 'errors' => []]);
+    }
+
+    public function testAdminMustGetEmptyCommentsListForDeletedPostThatHasNotComments()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->create();
+        $post->delete();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            getJson(str_replace('{post_id}', $post->id, $this->api_comment_list));
+        $response->assertOk()->assertJson(['message' => Creator::createSuccessMessage('empty_comments_list'), 'data' => []]);
     }
 }
