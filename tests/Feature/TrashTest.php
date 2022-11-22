@@ -238,4 +238,18 @@ class TrashTest extends TestCase
             getJson(str_replace('{post_id}', $post->id, $this->api_comment_list));
         $response->assertOk()->assertJson(['message' => Creator::createSuccessMessage('empty_comments_list'), 'data' => []]);
     }
+
+    public function testUnauthenticatedAdminCanNotGetListOfCommentsOfSpecificDeletedPost()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $user = User::factory()->create();
+        $post = Post::factory()->create();
+        $comment = $post->comments()->create(['user_id' => $user->id, 'content' => $factory->paragraph()]);
+        $post->delete();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . hash('sha256', 'fake token')])->
+            getJson(str_replace('{post_id}', $post->id, $this->api_comment_list));
+        $response->assertUnauthorized()->assertJson(['message' => Creator::createFailureMessage('unauthenticated'), 'errors' => []]);
+    }
 }
