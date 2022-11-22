@@ -209,4 +209,18 @@ class TrashTest extends TestCase
                 ]
             ]);
     }
+
+    public function testNonAdminUserCanNotGetListOfCommentsOfSpecificDeletedPost()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $user = User::factory()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->create();
+        $comment = $post->comments()->create(['user_id' => $user->id, 'content' => $factory->paragraph()]);
+        $post->delete();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->getJson(str_replace('{post_id}', $post->id, $this->api_comment_list));
+        $response->assertForbidden()->assertJsonFragment(['message' => Creator::createFailureMessage('unauthorized'), 'errors' => []]);
+    }
 }
