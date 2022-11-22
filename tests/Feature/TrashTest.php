@@ -169,11 +169,11 @@ class TrashTest extends TestCase
         $comment2 = $post->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
         $post->delete();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            getJson($this->api_comment_list);
+            getJson(str_replace('{post_id}', $post->id, $this->api_comment_list));
         $response->assertOk()->
             assertJsonStructure(['message', 'data' => ['deleted post' => [], 'comments' => []], 'pagination' => []])->
+            assertJsonFragment(['message' => Creator::createSuccessMessage('deleted_post_comments_list')])->
             assertJsonFragment([
-                'message' => Creator::createSuccessMessage('deleted_post_comments_list'),
                 'data' =>
                 [
                     'deleted post' => 

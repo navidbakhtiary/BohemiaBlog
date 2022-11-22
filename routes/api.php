@@ -61,7 +61,7 @@ Route::middleware(['auth:sanctum', CheckUserIsAdmin::class])->group(function ()
                     Route::get('/', [PostController::class, 'showDeleted']);
                     Route::prefix('comment')->group(function () 
                     {
-                        Route::get('/list', [CommentController::class, 'deletedIndex'])->name('deleted_post.comments');
+                        Route::get('/list', [CommentController::class, 'deletedPostIndex'])->name('deleted_post.comments');
                     });
                 });
         });

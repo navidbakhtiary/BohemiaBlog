@@ -13,6 +13,13 @@ use Illuminate\Support\Facades\DB;
 
 class CommentController extends Controller
 {
+    public function deletedPostIndex(Request $request)
+    {
+        $deleted_post = $request->route()->parameter('deleted_post');
+        $deleted_comments = $deleted_post->deletedComments()->paginate(20);
+        return (new OkResponse())->sendDeletedPostCommentsList($deleted_post, $deleted_comments);
+    }
+
     public function destroy(Request $request)
     {
         try {

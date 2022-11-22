@@ -8,6 +8,7 @@ use App\Http\Resources\CommentIndexResource;
 use App\Http\Resources\DeletedPostIndexResource;
 use App\Http\Resources\PaginateResource;
 use App\Http\Resources\PostIndexResource;
+use App\Http\Resources\SimpleDeletedPostResource;
 use App\Http\Resources\SimplePostResource;
 
 class OkResponse extends Response
@@ -21,6 +22,20 @@ class OkResponse extends Response
                 Creator::createSuccessMessage('comments_list'),
                 ['post' => new SimplePostResource($post), 'comments' => CommentIndexResource::collection($comments)],
                 new PaginateResource($comments)
+            );
+        } else {
+            return $this->sendPaginatedData(HttpStatus::Ok, Creator::createSuccessMessage('empty_comments_list'));
+        }
+    }
+
+    public function sendDeletedPostCommentsList($deleted_post, $deleted_comments)
+    {
+        if ($deleted_comments->count()) {
+            return $this->sendPaginatedData(
+                HttpStatus::Ok,
+                Creator::createSuccessMessage('deleted_post_comments_list'),
+                ['deleted post' => new SimpleDeletedPostResource($deleted_post), 'comments' => CommentIndexResource::collection($deleted_comments)],
+                new PaginateResource($deleted_comments)
             );
         } else {
             return $this->sendPaginatedData(HttpStatus::Ok, Creator::createSuccessMessage('empty_comments_list'));
