@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Classes\Creator;
+use App\Http\Resources\DeletedPostInformationResource;
 use App\Http\Resources\PostInformationResource;
 use App\Http\Resources\PostResource;
 use App\Http\Responses\CreatedResponse;
@@ -55,6 +56,14 @@ class Post extends Model implements CreatedModelInterface, DeletedModelInterface
             [
                 'post' => new PostResource($this)
             ],
+        );
+    }
+
+    public function sendDeletedInformationResponse()
+    {
+        return (new OkResponse())->sendOk(
+            Creator::createSuccessMessage('deleted_post_got'),
+            ['deleted post' => new DeletedPostInformationResource($this)]
         );
     }
 

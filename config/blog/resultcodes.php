@@ -4,6 +4,7 @@ return [
 
     'failures' => [
         'comment_not_found' => 'E031',
+        'deleted_post_not_found' => 'E041',
         'invalid_inputs' => 'E091',
         'invalid_email_verification' => 'E092',
         'non_existent_user' => 'E141',
@@ -19,6 +20,7 @@ return [
         'comment_saved' => 'S031',
         'comment_deleted' => 'S032',
         'deleted_posts_list' => 'S041',
+        'deleted_post_got' => 'S042',
         'empty_deleted_posts_list' => 'S051',
         'empty_list' => 'S051',
         'empty_posts_list' => 'S052',

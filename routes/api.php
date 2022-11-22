@@ -3,6 +3,7 @@
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
+use App\Http\Middleware\CheckDeletedPostExistence;
 use App\Http\Middleware\CheckPostExistence;
 use App\Http\Middleware\CheckUserIsAdmin;
 use App\Http\Middleware\CheckPostCommentExistence;
@@ -49,9 +50,20 @@ Route::middleware(['auth:sanctum', CheckUserIsAdmin::class])->group(function ()
                 Route::post('delete', [PostController::class, 'destroy']);
             }); 
     });
-    Route::prefix('trash')->group(function () {
-        Route::prefix('post')->group(function () {
+    Route::prefix('trash')->group(function () 
+    {
+        Route::prefix('post')->group(function () 
+        {
             Route::get('/list', [PostController::class, 'deletedIndex']);
+            Route::middleware(CheckDeletedPostExistence::class)->
+                prefix('{post_id}')->group(function () 
+                {
+                    Route::get('/', [PostController::class, 'showDeleted']);
+                    Route::prefix('comment')->group(function () 
+                    {
+                        Route::get('/list', [CommentController::class, 'deletedIndex'])->name('deleted_post.comments');
+                    });
+                });
         });
     });
 });

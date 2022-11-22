@@ -58,6 +58,12 @@ class PostController extends Controller
         return $post->sendInformationResponse();
     }
 
+    public function showDeleted(Request $request)
+    {
+        $deleted_post = $request->route()->parameter('deleted_post');
+        return $deleted_post->sendDeletedInformationResponse();
+    }
+
     public function store(PostStoreRequest $request)
     {
         try {
