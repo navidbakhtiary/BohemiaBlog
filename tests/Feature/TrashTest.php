@@ -142,4 +142,16 @@ class TrashTest extends TestCase
             ]
         ]);
     }
+
+    public function testGetNonExistentDeletedPostWillFail()
+    {
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $post = Post::factory()->create();
+        $token = $user->createToken('test-token');
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            getJson(str_replace('{post_id}', $post->id, $this->api_show));
+        $response->assertNotFound()->
+            assertJson(['message' => Creator::createFailureMessage('deleted_post_not_found'), 'errors' => []]);
+    }
 }
