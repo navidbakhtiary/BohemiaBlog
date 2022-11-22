@@ -16,7 +16,8 @@ class TrashTest extends TestCase
     private $bearer_prefix = 'Bearer ';
     
     private $api_post_list = '/api/trash/post/list';
-    private $api_show = '/api/trash/post/{post_id}';
+    private $api_show_post = '/api/trash/post/{post_id}';
+    private $api_comment_list = '/api/trash/post/{post_id}/comment/list';
 
     public function testAdminCanGetListOfDeletedPosts()
     {
@@ -118,7 +119,7 @@ class TrashTest extends TestCase
         $comment2 = $post->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
         $post->delete();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            getJson(str_replace('{post_id}', $post->id, $this->api_show));
+            getJson(str_replace('{post_id}', $post->id, $this->api_show_post));
         $response->assertOk()->assertJsonFragment([
             'message' => Creator::createSuccessMessage('deleted_post_got'),
             'data' => [
@@ -150,8 +151,62 @@ class TrashTest extends TestCase
         $post = Post::factory()->create();
         $token = $user->createToken('test-token');
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            getJson(str_replace('{post_id}', $post->id, $this->api_show));
+            getJson(str_replace('{post_id}', $post->id, $this->api_show_post));
         $response->assertNotFound()->
             assertJson(['message' => Creator::createFailureMessage('deleted_post_not_found'), 'errors' => []]);
+    }
+
+    public function testAdminCanGetListOfCommentsOfSpecificDeletedPost()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $post = Post::factory()->create();
+        $comment1 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $post->delete();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            getJson($this->api_comment_list);
+        $response->assertOk()->
+            assertJsonStructure(['message', 'data' => ['deleted post' => [], 'comments' => []], 'pagination' => []])->
+            assertJsonFragment([
+                'message' => Creator::createSuccessMessage('deleted_post_comments_list'),
+                'data' =>
+                [
+                    'deleted post' => 
+                    [
+                        'id' => $post->id, 
+                        'subject' => $post->subject, 
+                        'created at' => $post->created_at,
+                        'deleted at' => $post->deleted_at
+                    ],
+                    'comments' =>
+                    [
+                        [
+                            'id' => $comment1->id,
+                            'content' => $comment1->content,
+                            'created_at' => $comment1->created_at,
+                            'user' => [
+                                'id' => $user1->id,
+                                'name' => $user1->name,
+                                'surname' => $user1->surname
+                            ]
+                        ],
+                        [
+                            'id' => $comment2->id,
+                            'content' => $comment2->content,
+                            'created_at' => $comment2->created_at,
+                            'user' => [
+                                'id' => $user2->id,
+                                'name' => $user2->name,
+                                'surname' => $user2->surname
+                            ]
+                        ]
+                    ]
+                ]
+            ]);
     }
 }
