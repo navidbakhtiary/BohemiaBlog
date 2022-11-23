@@ -18,6 +18,7 @@ class TrashTest extends TestCase
     private $api_post_list = '/api/trash/post/list';
     private $api_show_post = '/api/trash/post/{post_id}';
     private $api_comment_list = '/api/trash/post/{post_id}/comment/list';
+    private $api_restore_post = '/api/trash/post/{post_id}/restore';
 
     public function testAdminCanGetListOfDeletedPosts()
     {
@@ -251,5 +252,97 @@ class TrashTest extends TestCase
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . hash('sha256', 'fake token')])->
             getJson(str_replace('{post_id}', $post->id, $this->api_comment_list));
         $response->assertUnauthorized()->assertJson(['message' => Creator::createFailureMessage('unauthenticated'), 'errors' => []]);
+    }
+
+    public function testAdminCanRestoreDeletedPostWithItsComments()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $comment1 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $post->delete();
+        $this->assertSoftDeleted(
+            'posts',
+            [
+                'id' => $post->id,
+                'admin_id' => $admin->id,
+                'subject' => $post->subject
+            ]
+        );
+        $this->assertSoftDeleted(
+            'comments',
+            [
+                'id' => $comment1->id,
+                'user_id' => $user1->id,
+                'content' => $comment1->content
+            ]
+        );
+        $this->assertSoftDeleted(
+            'comments',
+            [
+                'id' => $comment2->id,
+                'user_id' => $user2->id,
+                'content' => $comment2->content
+            ]
+        );
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace('{post_id}', $post->id, $this->api_restore_post), ['with_comments' => true]);
+        $response->assertOk()->
+            assertJsonFragment([
+            'message' => Creator::createSuccessMessage('deleted_post_restored'),
+            'data' => [
+                'restored post' => [
+                    'id' => $post->id,
+                    'subject' => $post->subject,
+                    'content' => $post->content,
+                    'created at' => $post->created_at,
+                    'updated at' => $post->updated_at,
+                    'author' => [
+                        'id' => $user->id,
+                        'name' => $user->name,
+                        'surname' => $user->surname,
+                        'nickname' => $user->nickname,
+                        'username' => $user->username,
+                    ],
+                    'comments count' => 2,
+                    'comments link' => Creator::createPostCommentsLink($post->id)
+                ]
+            ]
+        ]);
+        $this->assertDatabaseHas(
+            'posts', 
+            [
+                'id' => $post->id, 
+                'admin_id' => $admin->id, 
+                'subject' => $post->subject, 
+                'deleted_at' => null
+            ]
+        );
+        $this->assertDatabaseHas(
+            'comments',
+            [
+                'id' => $comment1->id, 
+                'user_id' => $user1->id, 
+                'content' => $comment1->content, 
+                'created_at' => $comment1->created_at, 
+                'deleted_at' => null
+            ]
+        );
+        $this->assertDatabaseHas(
+            'comments',
+            [
+                'id' => $comment2->id,
+                'user_id' => $user2->id,
+                'content' => $comment2->content,
+                'created_at' => $comment2->created_at,
+                'deleted_at' => null
+            ]
+        );
+        
     }
 }
