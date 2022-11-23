@@ -345,4 +345,76 @@ class TrashTest extends TestCase
         );
         
     }
+
+    public function testAdminCanRestoreDeletedPostWithoutItsComments()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $comment1 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $post->delete();
+        $this->assertSoftDeleted(
+            'posts',
+            [
+                'id' => $post->id,
+                'admin_id' => $admin->id,
+                'subject' => $post->subject
+            ]
+        );
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace('{post_id}', $post->id, $this->api_restore_post), ['with_comments' => false]);
+        $response->assertOk()->assertJsonFragment([
+                'message' => Creator::createSuccessMessage('deleted_post_restored'),
+                'data' => [
+                    'restored post' => [
+                        'id' => $post->id,
+                        'subject' => $post->subject,
+                        'content' => $post->content,
+                        'created at' => $post->created_at,
+                        'updated at' => $post->updated_at,
+                        'author' => [
+                            'id' => $user->id,
+                            'name' => $user->name,
+                            'surname' => $user->surname,
+                            'nickname' => $user->nickname,
+                            'username' => $user->username,
+                        ],
+                        'comments count' => 0,
+                        'comments link' => Creator::createPostCommentsLink($post->id)
+                    ]
+                ]
+            ]);
+        $this->assertDatabaseHas(
+            'posts',
+            [
+                'id' => $post->id,
+                'admin_id' => $admin->id,
+                'subject' => $post->subject,
+                'deleted_at' => null
+            ]
+        );
+        $this->assertSoftDeleted(
+            'comments',
+            [
+                'id' => $comment1->id,
+                'post_id' => $post->id,
+                'user_id' => $user1->id,
+                'content' => $comment1->content
+            ]
+        );
+        $this->assertSoftDeleted(
+            'comments',
+            [
+                'id' => $comment2->id,
+                'post_id' => $post->id,
+                'user_id' => $user2->id,
+                'content' => $comment2->content
+            ]
+        );
+    }
 }
