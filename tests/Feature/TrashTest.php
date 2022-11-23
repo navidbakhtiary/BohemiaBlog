@@ -7,6 +7,7 @@ use Tests\TestCase;
 use App\Models\Post;
 use App\Models\User;
 use App\Classes\Creator;
+use App\Classes\HttpStatus;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 
 class TrashTest extends TestCase
@@ -414,6 +415,46 @@ class TrashTest extends TestCase
                 'post_id' => $post->id,
                 'user_id' => $user2->id,
                 'content' => $comment2->content
+            ]
+        );
+    }
+
+    public function testAdminCanNotRestoreDeletedPostWithInvalidInput()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $comment1 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $post->delete();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace('{post_id}', $post->id, $this->api_restore_post), ['with_comments' => 'string']);
+        $response->assertStatus(HttpStatus::BadRequest)->
+            assertJson([
+                'message' => Creator::createFailureMessage('invalid_inputs'), 
+                'errors' => [
+                    'with_comments' => [
+                        Creator::createValidationError('with_comments', 'boolean', null, true, ['attribute' => trans('validation.attributes.with_comments')]),
+                    ]
+                ]
+            ]);
+        $this->assertSoftDeleted(
+            'posts',
+            [
+                'id' => $post->id,
+                'admin_id' => $admin->id,
+                'subject' => $post->subject,
+            ]
+        );
+        $this->assertSoftDeleted(
+            'comments',
+            [
+                'id' => $comment1->id,
+                'post_id' => $post->id,
+                'user_id' => $user1->id,
+                'content' => $comment1->content
             ]
         );
     }
