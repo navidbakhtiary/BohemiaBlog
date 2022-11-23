@@ -63,6 +63,7 @@ Route::middleware(['auth:sanctum', CheckUserIsAdmin::class])->group(function ()
                     {
                         Route::get('/list', [CommentController::class, 'deletedPostIndex'])->name('deleted_post.comments');
                     });
+                    Route::post('/restore', [PostController::class, 'restore']);
                 });
         });
     });

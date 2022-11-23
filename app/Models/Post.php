@@ -80,4 +80,14 @@ class Post extends Model implements CreatedModelInterface, DeletedModelInterface
             Creator::createSuccessMessage('post_got'), ['post' => new PostInformationResource($this)]
         );
     }
+
+    public function sendRestoredResponse()
+    {
+        return (new OkResponse())->sendOk(
+            Creator::createSuccessMessage('deleted_post_restored'),
+            [
+                'restored post' => new PostInformationResource($this)
+            ],
+        );
+    }
 }

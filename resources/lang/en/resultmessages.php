@@ -22,6 +22,7 @@ return [
         'comment_saved' => 'Comment was saved successfully.',
         'deleted_post_comments_list' => 'Comments list of deleted post successfully returned.',
         'deleted_post_got' => 'Deleted post information successfully returned.',
+        'deleted_post_restored' => 'Deleted post successfully restored.',
         'deleted_posts_list' => 'Deleted posts list successfully returned.',
         'empty_comments_list' => 'No comment is saved. The list is empty.',
         'empty_deleted_posts_list' => 'No post is deleted. The list is empty.',

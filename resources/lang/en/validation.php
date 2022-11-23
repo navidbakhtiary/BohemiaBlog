@@ -113,6 +113,10 @@ return [
             'required' => Creator::createValidationError('surname', 'required'),
             'string' => Creator::createValidationError('surname', 'string')
         ],
+        'with_comments' => [
+            'boolean' => Creator::createValidationError('with_comments', 'boolean'),
+            'required' => Creator::createValidationError('with_comments', 'required'),
+        ],
         'zipcode' => [
             'digits_between' => Creator::createValidationError('zipcode', 'digits_between')
         ],
@@ -135,6 +139,7 @@ return [
         'login' => 'email/phone number/username',
         'paginate' => 'number of items per page',
         'username' => 'username',
+        'with_comments' => 'comments restoration needed'
     ],
 
 ];

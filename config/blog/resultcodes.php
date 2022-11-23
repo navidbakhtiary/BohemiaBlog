@@ -23,6 +23,7 @@ return [
         'deleted_posts_list' => 'S041',
         'deleted_post_got' => 'S042',
         'deleted_post_comments_list' => 'S043',
+        'deleted_post_restored' => 'S044',
         'empty_deleted_posts_list' => 'S051',
         'empty_posts_list' => 'S052',
         'empty_comments_list' => 'S053',
