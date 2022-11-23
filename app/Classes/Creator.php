@@ -4,6 +4,11 @@ namespace App\Classes;
 
 class Creator
 {
+    static function createDeletedPostCommentsLink(int $post_id)
+    {
+        return route('deleted_post.comments', ['post_id' => $post_id]);
+    }
+
     static function createPostCommentsLink(int $post_id)
     {
         return route('post.comments', ['post_id' => $post_id]);

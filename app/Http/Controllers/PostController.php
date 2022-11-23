@@ -30,6 +30,18 @@ class PostController extends Controller
         }
     }
 
+    public function deletedIndex()
+    {
+        $deleted_posts = Post::
+            deletedListItem()->
+            withCount('deletedComments')->
+            onlyTrashed()->
+            orderByDesc('deleted_comments_count')->
+            orderBy('deleted_at')->
+            paginate(20);
+        return (new OkResponse())->sendDeletedPostsList($deleted_posts);
+    }
+
     public function index()
     {
         $posts = Post::listItem()->
@@ -44,6 +56,12 @@ class PostController extends Controller
     {
         $post = $request->route()->parameter('post');
         return $post->sendInformationResponse();
+    }
+
+    public function showDeleted(Request $request)
+    {
+        $deleted_post = $request->route()->parameter('deleted_post');
+        return $deleted_post->sendDeletedInformationResponse();
     }
 
     public function store(PostStoreRequest $request)

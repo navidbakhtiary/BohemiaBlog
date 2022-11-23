@@ -4,6 +4,7 @@ return [
 
     'failures' => [
         'comment_not_found' => 'There is no such comment.',
+        'deleted_post_not_found' => 'There is no such deleted post.',
         'invalid_inputs' => 'Inputs are invalid.',
         'invalid_email_verification' => 'Email verification link is INVALID.',
         'non_existent_user' => 'The email/phone number/username or password is incorrect.',
@@ -16,9 +17,14 @@ return [
     ],
 
     'successes' => [
-        'comment_saved' => 'Comment was saved successfully.',
         'comment_deleted' => 'Comment was deleted successfully.',
-        'empty_list' => 'No information is saved. The list is empty.',
+        'comments_list' => 'Comments list successfully returned.',
+        'comment_saved' => 'Comment was saved successfully.',
+        'deleted_post_comments_list' => 'Comments list of deleted post successfully returned.',
+        'deleted_post_got' => 'Deleted post information successfully returned.',
+        'deleted_posts_list' => 'Deleted posts list successfully returned.',
+        'empty_comments_list' => 'No comment is saved. The list is empty.',
+        'empty_deleted_posts_list' => 'No post is deleted. The list is empty.',
         'empty_posts_list' => 'No post is saved. The list is empty.',
         'post_deleted' => 'Post was deleted successfully.',
         'post_got' => 'Post information successfully returned.',
