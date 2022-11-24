@@ -475,6 +475,9 @@ class TrashTest extends TestCase
         $comment3 = $post1->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
         $post1->delete();
         $post2->delete();
+        $comment1->refresh();
+        $comment2->refresh();
+        $comment3->refresh();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
             getJson($this->api_comments_list);
         $response->assertOk()->
@@ -486,8 +489,8 @@ class TrashTest extends TestCase
                     [
                         'id' => $comment1->id,
                         'content' => $comment1->content,
-                        'created_at' => $comment1->created_at,
-                        'deleted_at' => $comment1->deleted_at,
+                        'created at' => $comment1->created_at,
+                        'deleted at' => $comment1->deleted_at,
                         'user' => [
                             'id' => $user1->id,
                             'name' => $user1->name,
@@ -495,14 +498,15 @@ class TrashTest extends TestCase
                         ],
                         'post' => [
                             'id' => $post1->id,
-                            'subject' => $post1->subject
+                            'subject' => $post1->subject,
+                            'is deleted' => 'Yes'
                         ],
                     ],
                     [
                         'id' => $comment2->id,
                         'content' => $comment2->content,
-                        'created_at' => $comment2->created_at,
-                        'deleted_at' => $comment2->deleted_at,
+                        'created at' => $comment2->created_at,
+                        'deleted at' => $comment2->deleted_at,
                         'user' => [
                             'id' => $user2->id,
                             'name' => $user2->name,
@@ -510,14 +514,15 @@ class TrashTest extends TestCase
                         ],
                         'post' => [
                             'id' => $post2->id,
-                            'subject' => $post2->subject
+                            'subject' => $post2->subject,
+                            'is deleted' => 'Yes'
                         ],
                     ],
                     [
                         'id' => $comment3->id,
                         'content' => $comment3->content,
-                        'created_at' => $comment3->created_at,
-                        'deleted_at' => $comment3->deleted_at,
+                        'created at' => $comment3->created_at,
+                        'deleted at' => $comment3->deleted_at,
                         'user' => [
                             'id' => $user2->id,
                             'name' => $user2->name,
@@ -525,7 +530,8 @@ class TrashTest extends TestCase
                         ],
                         'post' => [
                             'id' => $post1->id,
-                            'subject' => $post1->subject
+                            'subject' => $post1->subject,
+                            'is deleted' => 'Yes'
                         ],
                     ]
                 ]

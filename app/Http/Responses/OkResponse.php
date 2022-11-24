@@ -5,6 +5,7 @@ namespace App\Http\Responses;
 use App\Classes\Creator;
 use App\Classes\HttpStatus;
 use App\Http\Resources\CommentIndexResource;
+use App\Http\Resources\DeletedCommentIndexResource;
 use App\Http\Resources\DeletedPostIndexResource;
 use App\Http\Resources\PaginateResource;
 use App\Http\Resources\PostIndexResource;
@@ -25,6 +26,20 @@ class OkResponse extends Response
             );
         } else {
             return $this->sendPaginatedData(HttpStatus::Ok, Creator::createSuccessMessage('empty_comments_list'));
+        }
+    }
+
+    public function sendDeletedCommentsList($deleted_comments)
+    {
+        if ($deleted_comments->count()) {
+            return $this->sendPaginatedData(
+                HttpStatus::Ok,
+                Creator::createSuccessMessage('deleted_comments_list'),
+                ['deleted comments' => DeletedCommentIndexResource::collection($deleted_comments)],
+                new PaginateResource($deleted_comments)
+            );
+        } else {
+            return $this->sendPaginatedData(HttpStatus::Ok, Creator::createSuccessMessage('empty_deleted_comments_list'));
         }
     }
 

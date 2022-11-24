@@ -22,6 +22,10 @@ class Comment extends Model implements CreatedModelInterface, DeletedModelInterf
 
     public function post()
     {
+        if($this->trashed())
+        {
+            return $this->belongsTo(Post::class)->withTrashed();    
+        }
         return $this->belongsTo(Post::class);
     }
     
