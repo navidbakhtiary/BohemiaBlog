@@ -21,6 +21,7 @@ class TrashTest extends TestCase
     private $api_post_comments_list = '/api/trash/post/{post_id}/comment/list';
     private $api_restore_post = '/api/trash/post/{post_id}/restore';
     private $api_comments_list = '/api/trash/comment/list';
+    private $api_restore_comment = '/api/trash/post/{post_id}/comment/{comment_id}/restore';
 
     public function testAdminCanGetListOfDeletedPosts()
     {
@@ -567,5 +568,50 @@ class TrashTest extends TestCase
             getJson($this->api_comments_list);
         $response->assertOk()->
             assertJson(['message' => Creator::createSuccessMessage('empty_deleted_comments_list'), 'data' => []]);
+    }
+
+    public function testAdminCanRestoreDeletedCommentOfNotDeletedPost()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $comment = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment->delete();
+        $comment->refresh();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace(['{post_id}', '{comment_id}'], [$post->id, $comment->id], $this->api_restore_comment));
+        $response->assertOk()->assertJsonFragment([
+                'message' => Creator::createSuccessMessage('deleted_comment_restored'),
+                'data' => [
+                    'restored comment' => [
+                        'id' => $post->id,
+                        'content' => $post->content,
+                        'created at' => $post->created_at,
+                        'updated at' => $post->updated_at,
+                        'post' =>[
+                            'id' => $post->id,
+                            'subject' => $post->subject,
+                        ],
+                        'user' => [
+                            'id' => $user1->id,
+                            'name' => $user1->name,
+                            'surname' => $user1->surname
+                        ],
+                    ]
+                ]
+            ]);
+        $this->assertDatabaseHas(
+            'comments',
+            [
+                'id' => $comment->id,
+                'user_id' => $user1->id,
+                'content' => $comment->content,
+                'created_at' => $comment->created_at,
+                'deleted_at' => null
+            ]
+        );
     }
 }
