@@ -16,10 +16,11 @@ class TrashTest extends TestCase
 
     private $bearer_prefix = 'Bearer ';
     
-    private $api_post_list = '/api/trash/post/list';
+    private $api_posts_list = '/api/trash/post/list';
     private $api_show_post = '/api/trash/post/{post_id}';
-    private $api_comment_list = '/api/trash/post/{post_id}/comment/list';
+    private $api_post_comments_list = '/api/trash/post/{post_id}/comment/list';
     private $api_restore_post = '/api/trash/post/{post_id}/restore';
+    private $api_comments_list = '/api/trash/comment/list';
 
     public function testAdminCanGetListOfDeletedPosts()
     {
@@ -39,7 +40,7 @@ class TrashTest extends TestCase
         $post1->delete();
         $post2->delete();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            getJson($this->api_post_list);
+            getJson($this->api_posts_list);
         $response->assertOk()->
             assertJsonFragment(['message' => Creator::createSuccessMessage('deleted_posts_list')])->
             assertJsonStructure(['message', 'data' => ['deleted posts' => []], 'pagination' => []])->
@@ -90,7 +91,7 @@ class TrashTest extends TestCase
         $token = $user->createToken('test-token');
         $post->delete();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            getJson($this->api_post_list);
+            getJson($this->api_posts_list);
         $response->assertForbidden()->
             assertJson(['message' => Creator::createFailureMessage('unauthorized'), 'errors' => []]);
     }
@@ -103,7 +104,7 @@ class TrashTest extends TestCase
         $token = $user->createToken('test-token');
         $post = Post::factory()->create();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            getJson($this->api_post_list);
+            getJson($this->api_posts_list);
         $response->assertOk()->
             assertJson(['message' => Creator::createSuccessMessage('empty_deleted_posts_list'), 'data' => []]);
     }
@@ -171,7 +172,7 @@ class TrashTest extends TestCase
         $comment2 = $post->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
         $post->delete();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            getJson(str_replace('{post_id}', $post->id, $this->api_comment_list));
+            getJson(str_replace('{post_id}', $post->id, $this->api_post_comments_list));
         $response->assertOk()->
             assertJsonStructure(['message', 'data' => ['deleted post' => [], 'comments' => []], 'pagination' => []])->
             assertJsonFragment(['message' => Creator::createSuccessMessage('deleted_post_comments_list')])->
@@ -223,7 +224,7 @@ class TrashTest extends TestCase
         $comment = $post->comments()->create(['user_id' => $user->id, 'content' => $factory->paragraph()]);
         $post->delete();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            getJson(str_replace('{post_id}', $post->id, $this->api_comment_list));
+            getJson(str_replace('{post_id}', $post->id, $this->api_post_comments_list));
         $response->assertForbidden()->
             assertJsonFragment(['message' => Creator::createFailureMessage('unauthorized'), 'errors' => []]);
     }
@@ -237,7 +238,7 @@ class TrashTest extends TestCase
         $post = Post::factory()->create();
         $post->delete();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            getJson(str_replace('{post_id}', $post->id, $this->api_comment_list));
+            getJson(str_replace('{post_id}', $post->id, $this->api_post_comments_list));
         $response->assertOk()->assertJson(['message' => Creator::createSuccessMessage('empty_comments_list'), 'data' => []]);
     }
 
@@ -251,7 +252,7 @@ class TrashTest extends TestCase
         $comment = $post->comments()->create(['user_id' => $user->id, 'content' => $factory->paragraph()]);
         $post->delete();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . hash('sha256', 'fake token')])->
-            getJson(str_replace('{post_id}', $post->id, $this->api_comment_list));
+            getJson(str_replace('{post_id}', $post->id, $this->api_post_comments_list));
         $response->assertUnauthorized()->assertJson(['message' => Creator::createFailureMessage('unauthenticated'), 'errors' => []]);
     }
 
