@@ -191,7 +191,7 @@ class TrashTest extends TestCase
                         [
                             'id' => $comment1->id,
                             'content' => $comment1->content,
-                            'created_at' => $comment1->created_at,
+                            'created at' => $comment1->created_at,
                             'user' => [
                                 'id' => $user1->id,
                                 'name' => $user1->name,
@@ -201,7 +201,7 @@ class TrashTest extends TestCase
                         [
                             'id' => $comment2->id,
                             'content' => $comment2->content,
-                            'created_at' => $comment2->created_at,
+                            'created at' => $comment2->created_at,
                             'user' => [
                                 'id' => $user2->id,
                                 'name' => $user2->name,
