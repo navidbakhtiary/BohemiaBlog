@@ -459,4 +459,76 @@ class TrashTest extends TestCase
             ]
         );
     }
+
+    public function testAdminCanGetListOfDeletedComments()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $post1 = Post::factory()->create();
+        $post2 = Post::factory()->create();
+        $comment1 = $post1->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post2->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $comment3 = $post1->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $post1->delete();
+        $post2->delete();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            getJson($this->api_comments_list);
+        $response->assertOk()->
+            assertJsonFragment(['message' => Creator::createSuccessMessage('deleted_comments_list')])->
+            assertJsonStructure(['message', 'data' => ['deleted comments' => []], 'pagination' => []])->
+            assertJsonFragment([
+                'deleted comments' =>
+                [
+                    [
+                        'id' => $comment1->id,
+                        'content' => $comment1->content,
+                        'created_at' => $comment1->created_at,
+                        'deleted_at' => $comment1->deleted_at,
+                        'user' => [
+                            'id' => $user1->id,
+                            'name' => $user1->name,
+                            'surname' => $user1->surname
+                        ],
+                        'post' => [
+                            'id' => $post1->id,
+                            'subject' => $post1->subject
+                        ],
+                    ],
+                    [
+                        'id' => $comment2->id,
+                        'content' => $comment2->content,
+                        'created_at' => $comment2->created_at,
+                        'deleted_at' => $comment2->deleted_at,
+                        'user' => [
+                            'id' => $user2->id,
+                            'name' => $user2->name,
+                            'surname' => $user2->surname
+                        ],
+                        'post' => [
+                            'id' => $post2->id,
+                            'subject' => $post2->subject
+                        ],
+                    ],
+                    [
+                        'id' => $comment3->id,
+                        'content' => $comment3->content,
+                        'created_at' => $comment3->created_at,
+                        'deleted_at' => $comment3->deleted_at,
+                        'user' => [
+                            'id' => $user2->id,
+                            'name' => $user2->name,
+                            'surname' => $user2->surname
+                        ],
+                        'post' => [
+                            'id' => $post1->id,
+                            'subject' => $post1->subject
+                        ],
+                    ]
+                ]
+            ]);
+    }
 }
