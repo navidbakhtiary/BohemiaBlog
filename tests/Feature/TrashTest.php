@@ -552,4 +552,20 @@ class TrashTest extends TestCase
             getJson($this->api_comments_list);
         $response->assertForbidden()->assertJson(['message' => Creator::createFailureMessage('unauthorized'), 'errors' => []]);
     }
+
+    public function testAdminGetEmptyDeletedCommentsListWhenNoCommentHasBeenDeleted()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post1 = Post::factory()->create();
+        $post2 = Post::factory()->create();
+        $post1->delete();
+        $post2->delete();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            getJson($this->api_comments_list);
+        $response->assertOk()->
+            assertJson(['message' => Creator::createSuccessMessage('empty_deleted_comments_list'), 'data' => []]);
+    }
 }
