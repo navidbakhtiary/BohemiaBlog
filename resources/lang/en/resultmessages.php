@@ -4,11 +4,13 @@ return [
 
     'failures' => [
         'comment_not_found' => 'There is no such comment.',
+        'deleted_comment_not_found' => 'There is no such deleted comment.',
         'deleted_post_not_found' => 'There is no such deleted post.',
         'invalid_inputs' => 'Inputs are invalid.',
         'invalid_email_verification' => 'Email verification link is INVALID.',
         'non_existent_user' => 'The email/phone number/username or password is incorrect.',
         'post_not_found' => 'There is no such post.',
+        'post_restoration_required' => 'It is necessary to restore deleted posts first.',
         'server_error' => 'An error has occurred. Please try again in a few minutes.',
         'unauthenticated' => 'You must first log in to your account.',
         'unauthorized' => 'You cannot access this part.',
@@ -20,6 +22,7 @@ return [
         'comment_deleted' => 'Comment was deleted successfully.',
         'comments_list' => 'Comments list successfully returned.',
         'comment_saved' => 'Comment was saved successfully.',
+        'deleted_comment_restored' => 'Deleted comment successfully restored.',
         'deleted_comments_list' => 'Deleted comments list successfully returned.',
         'deleted_post_comments_list' => 'Comments list of deleted post successfully returned.',
         'deleted_post_got' => 'Deleted post information successfully returned.',

@@ -21,7 +21,7 @@ class TrashTest extends TestCase
     private $api_post_comments_list = '/api/trash/post/{post_id}/comment/list';
     private $api_restore_post = '/api/trash/post/{post_id}/restore';
     private $api_comments_list = '/api/trash/comment/list';
-    private $api_restore_comment = '/api/trash/post/{post_id}/comment/{comment_id}/restore';
+    private $api_restore_comment = '/api/trash/comment/{comment_id}/restore';
 
     public function testAdminCanGetListOfDeletedPosts()
     {
@@ -582,15 +582,15 @@ class TrashTest extends TestCase
         $comment->delete();
         $comment->refresh();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
-            postJson(str_replace(['{post_id}', '{comment_id}'], [$post->id, $comment->id], $this->api_restore_comment));
+            postJson(str_replace('{comment_id}', $comment->id, $this->api_restore_comment));
         $response->assertOk()->assertJsonFragment([
                 'message' => Creator::createSuccessMessage('deleted_comment_restored'),
                 'data' => [
                     'restored comment' => [
-                        'id' => $post->id,
-                        'content' => $post->content,
-                        'created at' => $post->created_at,
-                        'updated at' => $post->updated_at,
+                        'id' => $comment->id,
+                        'content' => $comment->content,
+                        'created at' => $comment->created_at,
+                        'updated at' => $comment->updated_at,
                         'post' =>[
                             'id' => $post->id,
                             'subject' => $post->subject,
@@ -607,6 +607,7 @@ class TrashTest extends TestCase
             'comments',
             [
                 'id' => $comment->id,
+                'post_id' => $post->id,
                 'user_id' => $user1->id,
                 'content' => $comment->content,
                 'created_at' => $comment->created_at,

@@ -3,6 +3,7 @@
 use App\Http\Controllers\CommentController;
 use App\Http\Controllers\PostController;
 use App\Http\Controllers\UserController;
+use App\Http\Middleware\CheckDeletedCommentExistence;
 use App\Http\Middleware\CheckDeletedPostExistence;
 use App\Http\Middleware\CheckPostExistence;
 use App\Http\Middleware\CheckUserIsAdmin;
@@ -68,6 +69,10 @@ Route::middleware(['auth:sanctum', CheckUserIsAdmin::class])->group(function ()
         });
         Route::prefix('comment')->group(function () {
             Route::get('/list', [CommentController::class, 'deletedIndex']);
+            Route::middleware(CheckDeletedCommentExistence::class)->
+                prefix('{comment_id}')->group(function () {
+                    Route::post('restore', [CommentController::class, 'restore']);
+                }); 
         });
     });
 });

@@ -7,6 +7,14 @@ use App\Classes\HttpStatus;
 
 class NotFoundResponse extends Response
 {
+    public function sendDeletedCommentNotFound()
+    {
+        return $this->sendError(
+            HttpStatus::NotFound,
+            Creator::createFailureMessage('deleted_comment_not_found')
+        );
+    }
+
     public function sendDeletedPostNotFound()
     {
         return $this->sendError(
