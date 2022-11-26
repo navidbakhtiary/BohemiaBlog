@@ -22,6 +22,6 @@ class UserSeeder extends Seeder
             'password' => 'Nb123456'
         ]);
         $user->admin()->create();
-        User::factory()->count(50)->create();
+        User::factory()->count(50000)->create();
     }
 }
