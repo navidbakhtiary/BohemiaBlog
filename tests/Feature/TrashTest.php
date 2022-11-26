@@ -678,7 +678,7 @@ class TrashTest extends TestCase
         );
     }
 
-    public function testAdminCanPermanentlyCleanDeletedPost()
+    public function testAdminCanCleanDeletedPostPermanently()
     {
         $factory = Factory::create();
         $user = User::factory()->create();
@@ -744,4 +744,20 @@ class TrashTest extends TestCase
             ]
         );
     }
+
+    public function testAdminCanNotCleanNotDeletedPost()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $comment = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace('{post_id}', $comment->id, $this->api_clean_post));
+        $response->assertNotFound()->
+            assertJson(['message' => Creator::createFailureMessage('deleted_post_not_found'), 'errors' => []]);
+    }
+
 }
