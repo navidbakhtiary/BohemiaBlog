@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\Post\PostRestoreRequest;
 use App\Http\Requests\Post\PostStoreRequest;
 use App\Http\Responses\InternalServerErrorResponse;
 use App\Http\Responses\OkResponse;
@@ -50,6 +51,29 @@ class PostController extends Controller
             orderByDesc('updated_at')->
             paginate(20);
         return (new OkResponse())->sendPostsList($posts);
+    }
+
+    public function restore(PostRestoreRequest $request)
+    {
+        try {
+            DB::beginTransaction();
+            $post = $request->route()->parameter('deleted_post');
+            $comments = true;
+            if($request->with_comments)
+            {
+                $comments = $post->deletedComments()->restore();
+            }
+            if ($post->restore() && $comments) {
+                $post->refresh();
+                DB::commit();
+                return $post->sendRestoredResponse();
+            }
+            DB::rollBack();
+            return (new UnprocessableEntityResponse())->sendMessage();
+        } catch (Exception $exc) {
+            DB::rollBack();
+            return (new InternalServerErrorResponse())->sendMessage();
+        }
     }
     
     public function show(Request $request)

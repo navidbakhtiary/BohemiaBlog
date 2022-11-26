@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Classes\Creator;
 use App\Http\Resources\CommentResource;
+use App\Http\Resources\RestoredCommentResource;
 use App\Http\Responses\CreatedResponse;
 use App\Http\Responses\OkResponse;
 use App\Interfaces\CreatedModelInterface;
@@ -22,6 +23,10 @@ class Comment extends Model implements CreatedModelInterface, DeletedModelInterf
 
     public function post()
     {
+        if($this->trashed())
+        {
+            return $this->belongsTo(Post::class)->withTrashed();    
+        }
         return $this->belongsTo(Post::class);
     }
     
@@ -39,6 +44,16 @@ class Comment extends Model implements CreatedModelInterface, DeletedModelInterf
     {
         return (new OkResponse())->sendOk(
             Creator::createSuccessMessage('comment_deleted')
+        );
+    }
+
+    public function sendRestoredResponse()
+    {
+        return (new OkResponse())->sendOk(
+            Creator::createSuccessMessage('deleted_comment_restored'),
+            [
+                'restored comment' => new RestoredCommentResource($this)
+            ],
         );
     }
 

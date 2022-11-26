@@ -14,13 +14,13 @@ class UserFactory extends Factory
     public function definition()
     {
         return [
-            'name' => $this->faker->firstName(),
-            'surname' => $this->faker->lastName(),
+            'name' => preg_replace('/[^a-zA-Z\x{0020}]/', '', $this->faker->firstName()),
+            'surname' => preg_replace('/[^a-zA-Z\x{0020}]/', '', $this->faker->lastName()),
             'email' => $this->faker->unique()->safeEmail(),
             'phone' => $this->faker->unique()->e164PhoneNumber(),
             'address' => $this->faker->address(),
-            'city' => $this->faker->city(),
-            'state' => $this->faker->country(),
+            'city' => preg_replace('/[^a-zA-Z\x{0020}]/', '', $this->faker->city()),
+            'state' => preg_replace('/[^a-zA-Z\x{0020}]/', '', $this->faker->country()),
             'zipcode' => $this->faker->numberBetween(1000000000, 9999999999),
             'password' => $this->faker->password(8, 20),
             'email_verified_at' => now(),

@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CommentIndexResource extends JsonResource
+class PostStatusResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -16,9 +16,8 @@ class CommentIndexResource extends JsonResource
     {
         return [
             'id' => $this->id,
-            'content' => $this->content,
-            'created at' => $this->created_at,
-            'user' => new SimpleUserResource($this->resource->user)
+            'subject' => $this->subject,
+            'is deleted' => ($this->resource->trashed() ? 'Yes' : 'No')
         ];
     }
 }

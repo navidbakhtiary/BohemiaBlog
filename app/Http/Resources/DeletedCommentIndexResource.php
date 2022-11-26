@@ -4,7 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Resources\Json\JsonResource;
 
-class CommentIndexResource extends JsonResource
+class DeletedCommentIndexResource extends JsonResource
 {
     /**
      * Transform the resource into an array.
@@ -18,6 +18,8 @@ class CommentIndexResource extends JsonResource
             'id' => $this->id,
             'content' => $this->content,
             'created at' => $this->created_at,
+            'deleted at' => $this->deleted_at,
+            'post' => new PostStatusResource($this->resource->post),
             'user' => new SimpleUserResource($this->resource->user)
         ];
     }
