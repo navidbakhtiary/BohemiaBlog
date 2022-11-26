@@ -615,4 +615,35 @@ class TrashTest extends TestCase
             ]
         );
     }
+
+    public function testAdminCanNotRestoreDeletedCommentOfDeletedPost()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $comment = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $post->delete();
+        $post->refresh();
+        $comment->refresh();
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace('{comment_id}', $comment->id, $this->api_restore_comment));
+        $response->assertStatus(HttpStatus::BadRequest)->assertJsonFragment([
+                'message' => Creator::createFailureMessage('post_restoration_required'),
+                'errors' => []
+            ]);
+        $this->assertSoftDeleted(
+            'comments',
+            [
+                'id' => $comment->id,
+                'post_id' => $post->id,
+                'user_id' => $user1->id,
+                'content' => $comment->content,
+                'created_at' => $comment->created_at,
+                'deleted_at' => $comment->deleted_at
+            ]
+        );
+    }
 }
