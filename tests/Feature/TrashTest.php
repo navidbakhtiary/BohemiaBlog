@@ -23,6 +23,7 @@ class TrashTest extends TestCase
     private $api_comments_list = '/api/trash/comment/list';
     private $api_restore_comment = '/api/trash/comment/{comment_id}/restore';
     private $api_clean_post = '/api/trash/post/{post_id}/clean';
+    private $api_clean_comment = '/api/trash/comment/{comment_id}/clean';
 
     public function testAdminCanGetListOfDeletedPosts()
     {
@@ -760,4 +761,99 @@ class TrashTest extends TestCase
             assertJson(['message' => Creator::createFailureMessage('deleted_post_not_found'), 'errors' => []]);
     }
 
+    public function testAdminCanCleanDeletedCommentPermanently()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $comment1 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $comment2->delete();
+        $comment2->refresh();
+        $this->assertSoftDeleted(
+            'comments',
+            [
+                'id' => $comment2->id,
+                'post_id' => $post->id,
+                'user_id' => $user2->id,
+                'content' => $comment2->content,
+                'created_at' => $comment2->created_at
+            ]
+        );
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace('{comment_id}', $comment2->id, $this->api_clean_comment));
+        $response->assertOk()->assertJsonFragment([
+            'message' => Creator::createSuccessMessage('deleted_comment_permanently_cleaned'),
+            'data' => []
+        ]);
+        $this->assertDatabaseHas(
+            'posts',
+            [
+                'id' => $post->id,
+                'admin_id' => $admin->id,
+                'subject' => $post->subject
+            ]
+        );
+        $this->assertNotSoftDeleted(
+            'comments',
+            [
+                'id' => $comment1->id,
+                'post_id' => $post->id,
+                'user_id' => $user1->id,
+                'content' => $comment1->content,
+                'created_at' => $comment1->created_at
+            ]
+        );
+        $this->assertDatabaseMissing(
+            'comments',
+            [
+                'id' => $comment2->id,
+                'post_id' => $post->id,
+                'user_id' => $user2->id,
+                'content' => $comment2->content,
+                'created_at' => $comment2->created_at
+            ]
+        );
+    }
+
+    public function testAdminCanNotCleanNotDeletedComment()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $comment = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace('{comment_id}', $comment->id, $this->api_clean_comment));
+        $response->assertNotFound()->assertJson([
+            'message' => Creator::createFailureMessage('deleted_comment_not_found'), 'errors' => []
+        ]);
+        $this->assertNotSoftDeleted(
+            'comments',
+            [
+                'id' => $comment->id,
+                'post_id' => $post->id,
+                'user_id' => $user1->id,
+                'content' => $comment->content,
+                'created_at' => $comment->created_at
+            ]
+        );
+        $this->assertDatabaseHas(
+            'comments',
+            [
+                'id' => $comment->id,
+                'post_id' => $post->id,
+                'user_id' => $user1->id,
+                'content' => $comment->content,
+                'created_at' => $comment->created_at,
+                'deleted_at' => null
+            ]
+        );
+    }
 }
