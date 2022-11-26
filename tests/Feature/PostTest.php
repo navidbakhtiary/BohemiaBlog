@@ -62,7 +62,7 @@ class PostTest extends TestCase
         $user = User::factory()->create();
         $admin = $user->admin()->create();
         $token = $user->createToken('test-token');
-        $subject = Factory::create()->paragraph();
+        $subject = Factory::create()->paragraph() . Factory::create()->paragraph();
         $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
             postJson($this->api_save, ['subject' => $subject]);
         $response->assertStatus(HttpStatus::BadRequest)->assertJson(
