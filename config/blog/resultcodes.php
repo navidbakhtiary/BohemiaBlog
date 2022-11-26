@@ -29,6 +29,7 @@ return [
         'deleted_comments_list' => 'S045',
         'deleted_comment_restored' => 'S046',
         'deleted_post_permanently_cleaned' => 'S047',
+        'deleted_comment_permanently_cleaned' => 'S048',
         'empty_deleted_posts_list' => 'S051',
         'empty_posts_list' => 'S052',
         'empty_comments_list' => 'S053',

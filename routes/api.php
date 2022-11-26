@@ -73,6 +73,7 @@ Route::middleware(['auth:sanctum', CheckUserIsAdmin::class])->group(function ()
             Route::middleware(CheckDeletedCommentExistence::class)->
                 prefix('{comment_id}')->group(function () {
                     Route::post('restore', [CommentController::class, 'restore']);
+                    Route::post('clean', [CommentController::class, 'clean']);
                 }); 
         });
     });

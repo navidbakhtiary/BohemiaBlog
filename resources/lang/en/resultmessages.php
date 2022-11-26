@@ -22,6 +22,7 @@ return [
         'comment_deleted' => 'Comment was deleted successfully.',
         'comments_list' => 'Comments list was successfully returned.',
         'comment_saved' => 'Comment was saved successfully.',
+        'deleted_comment_permanently_cleaned' => 'Deleted comment was successfully cleaned permanently.',
         'deleted_comment_restored' => 'Deleted comment was successfully restored.',
         'deleted_comments_list' => 'Deleted comments list was successfully returned.',
         'deleted_post_comments_list' => 'Comments list of deleted post was successfully returned.',

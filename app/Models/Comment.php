@@ -29,6 +29,13 @@ class Comment extends Model implements CreatedModelInterface, DeletedModelInterf
         }
         return $this->belongsTo(Post::class);
     }
+
+    public function sendCleanedResponse()
+    {
+        return (new OkResponse())->sendOk(
+            Creator::createSuccessMessage('deleted_comment_permanently_cleaned')
+        );
+    }
     
     public function sendCreatedResponse()
     {

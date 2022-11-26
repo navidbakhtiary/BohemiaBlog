@@ -15,6 +15,23 @@ use Illuminate\Support\Facades\DB;
 
 class CommentController extends Controller
 {
+    public function clean(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            $comment = $request->route()->parameter('deleted_comment');
+            if ($comment->forceDelete()) {
+                DB::commit();
+                return $comment->sendCleanedResponse();
+            }
+            DB::rollBack();
+            return (new UnprocessableEntityResponse())->sendMessage();
+        } catch (Exception $exc) {
+            DB::rollBack();
+            return (new InternalServerErrorResponse())->sendMessage();
+        }
+    }
+
     public function deletedIndex(Request $request)
     {
         $deleted_comments = Comment::onlyTrashed()->paginate(20);
