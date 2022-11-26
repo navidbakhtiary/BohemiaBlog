@@ -60,6 +60,7 @@ Route::middleware(['auth:sanctum', CheckUserIsAdmin::class])->group(function ()
                 prefix('{post_id}')->group(function () 
                 {
                     Route::get('/', [PostController::class, 'showDeleted']);
+                    Route::post('/clean', [PostController::class, 'clean']);
                     Route::prefix('comment')->group(function () 
                     {
                         Route::get('/list', [CommentController::class, 'deletedPostIndex'])->name('deleted_post.comments');

@@ -14,6 +14,25 @@ use Illuminate\Support\Facades\DB;
 
 class PostController extends Controller
 {
+
+    public function clean(Request $request)
+    {
+        try {
+            DB::beginTransaction();
+            $post = $request->route()->parameter('deleted_post');
+            if ($post->comments()->forceDelete() && $post->forceDelete()) 
+            {
+                DB::commit();
+                return $post->sendCleanedResponse();
+            }
+            DB::rollBack();
+            return (new UnprocessableEntityResponse())->sendMessage();
+        } catch (Exception $exc) {
+            DB::rollBack();
+            return (new InternalServerErrorResponse())->sendMessage();
+        }
+    }
+
     public function destroy(Request $request)
     {
         try {

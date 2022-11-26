@@ -49,6 +49,13 @@ class Post extends Model implements CreatedModelInterface, DeletedModelInterface
         return $this->select(['id', 'admin_id', 'subject', 'updated_at', DB::raw("SUBSTR(content, 1, 250) as summary")]);
     }
 
+    public function sendCleanedResponse()
+    {
+        return (new OkResponse())->sendOk(
+            Creator::createSuccessMessage('deleted_post_permanently_cleaned')
+        );
+    }
+
     public function sendCreatedResponse()
     {
         return (new CreatedResponse())->sendCreated(
