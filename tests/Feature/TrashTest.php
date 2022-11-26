@@ -22,6 +22,7 @@ class TrashTest extends TestCase
     private $api_restore_post = '/api/trash/post/{post_id}/restore';
     private $api_comments_list = '/api/trash/comment/list';
     private $api_restore_comment = '/api/trash/comment/{comment_id}/restore';
+    private $api_clean_post = '/api/trash/post/{post_id}/clean';
 
     public function testAdminCanGetListOfDeletedPosts()
     {
@@ -673,6 +674,73 @@ class TrashTest extends TestCase
                 'content' => $comment->content,
                 'created_at' => $comment->created_at,
                 'deleted_at' => $comment->deleted_at
+            ]
+        );
+    }
+
+    public function testAdminCanPermanentlyCleanDeletedPost()
+    {
+        $factory = Factory::create();
+        $user = User::factory()->create();
+        $admin = $user->admin()->create();
+        $token = $user->createToken('test-token');
+        $post = Post::factory()->create();
+        $user1 = User::factory()->create();
+        $user2 = User::factory()->create();
+        $comment1 = $post->comments()->create(['user_id' => $user1->id, 'content' => $factory->paragraph()]);
+        $comment2 = $post->comments()->create(['user_id' => $user2->id, 'content' => $factory->paragraph()]);
+        $post->delete();
+        $post->refresh();
+        $this->assertSoftDeleted(
+            'posts',
+            [
+                'id' => $post->id,
+                'admin_id' => $admin->id,
+                'subject' => $post->subject
+            ]
+        );
+        $this->assertSoftDeleted(
+            'comments',
+            [
+                'id' => $comment1->id,
+                'post_id' => $post->id,
+                'user_id' => $user1->id,
+                'content' => $comment1->content,
+                'created_at' => $comment1->created_at
+            ]
+        );
+        $response = $this->withHeaders(['Authorization' => $this->bearer_prefix . $token->plainTextToken])->
+            postJson(str_replace('{post_id}', $post->id, $this->api_clean_post));
+        $response->assertOk()->assertJsonFragment([
+                'message' => Creator::createSuccessMessage('deleted_post_permanently_cleaned'),
+                'data' => []
+            ]);
+        $this->assertDatabaseMissing(
+            'posts',
+            [
+                'id' => $post->id,
+                'admin_id' => $admin->id,
+                'subject' => $post->subject
+            ]
+        );
+        $this->assertDatabaseMissing(
+            'comments',
+            [
+                'id' => $comment1->id,
+                'post_id' => $post->id,
+                'user_id' => $user1->id,
+                'content' => $comment1->content,
+                'created_at' => $comment1->created_at
+            ]
+        );
+        $this->assertDatabaseMissing(
+            'comments',
+            [
+                'id' => $comment2->id,
+                'post_id' => $post->id,
+                'user_id' => $user2->id,
+                'content' => $comment2->content,
+                'created_at' => $comment2->created_at
             ]
         );
     }
