@@ -2,7 +2,7 @@
 
 A Laravel example that implemented some features of Blog.
 
-This example is a collection of backend API that implemented on Laravel 8.x.  
+This example is a collection of backend APIs that was implemented on Laravel 8.x .  
 
 ### Important Specifications
 
