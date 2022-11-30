@@ -10,10 +10,10 @@ This example is a collection of backend APIs that was implemented on Laravel 8.x
 2. To make user authentication, Laravel Sanctum package has been used. 
 3. Blog feed posts list sorted by comments count in descendent order.
 4. Use soft-deleted technique to delete posts and comments.
-5. Posts and comments can be cleaned from trash bin permanently just by admin.
+5. Posts and comments can be cleaned from trash bin permanently, just by admin.
 6. Deleted posts and comments can be restore just by admin.
 7. Seeders have been used to generate 50K users, 1K posts and 50 comments for each post.
-8. Schedulers has been used to delete posts that are more than 3 hours old.
+8. Schedulers has been used to delete posts and comments that are more than 3 hours old.
 
 ### Endpoints
 
