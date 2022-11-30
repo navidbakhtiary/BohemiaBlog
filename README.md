@@ -14,6 +14,7 @@ This example is a collection of backend APIs that was implemented on Laravel 8.x
 6. Deleted posts and comments can be restore just by admin.
 7. Seeders have been used to generate 50K users, 1K posts and 50 comments for each post.
 8. Schedulers has been used to delete posts and comments that are more than 3 hours old.
+9. All of the endpoints have been tested with the TDD approach. Happy and unhappy pathes have been considered. 
 
 ### Endpoints
 
